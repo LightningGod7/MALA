@@ -47,15 +47,15 @@ Automation tools for web security
   
 ===Common Reference Tools===
 1. Domains
-  -WHOIS
-  -DIG
-  -crt.sh
-  -Zone Transfers
+  - WHOIS
+  - DIG
+  - crt.sh
+  - Zone Transfers
  
 2. Web Servers
-  -Curl
-  -WhatWeb
-  -WafW00f
-  -Wappalyzer
-  -Aquatone
-  -ffuf
+  - Curl
+  - WhatWeb
+  - WafW00f
+  - Wappalyzer
+  - Aquatone
+  - ffuf
