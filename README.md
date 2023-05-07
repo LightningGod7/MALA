@@ -44,3 +44,18 @@ Automation tools for web security
   - ID-ing SQLi via error-based payloads
   - UNION-based
   - Blind
+  
+===Common Reference Tools===
+1. Domains
+  -WHOIS
+  -DIG
+  -crt.sh
+  -Zone Transfers
+ 
+2. Web Servers
+  -Curl
+  -WhatWeb
+  -WafW00f
+  -Wappalyzer
+  -Aquatone
+  -ffuf
