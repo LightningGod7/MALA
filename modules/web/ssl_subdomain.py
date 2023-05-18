@@ -24,4 +24,4 @@ def ssl_domain_enum(domain):
     domain_list.sort()
     print(domain_list) #remove this
     
-ssl_domain_enum("github.com")
+ssl_domain_enum("inlanefreight.com")
