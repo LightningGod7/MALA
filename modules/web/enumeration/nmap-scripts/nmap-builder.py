@@ -1,42 +1,49 @@
 import subprocess
 
-script_list = [
-    "http-config-backup",
-    "http-drupal-enum-users",
-    "http-drupal-enum",
-    "http-enum",
-    "http-fileupload-exploiter",
-    "http-form-brute",
-    "http-form-fuzzer",
-    "http-waf-detect",
-    "http-waf-fingerprint",
-    "http-webdav-scan",
-    "http-joomla-brute",
-    "http-phpmyadmin-dir-traversal",
-    "http-wordpress-brute",
-    "http-wordpress-enum",
-    "http-wordpress-users"
-]
+nmap_variables = {"script": [], "args":""}
 
-scripts_with_additional_args = [
-    "http-fileupload-exploiter.nse",
-    "http-form-brute.nse",
-    "http-form-fuzzer.nse",
-    "http-waf-fingerprint.nse",
-    "http-joomla-brute.nse",
-    "http-phpmyadmin-dir-traversal.nse",
-    "http-wordpress-brute.nse",
-    "http-wordpress-enum.nse",
-]
+def set_nmap_variables(args):
+    if len(args) < 2:
+        print("Usage: SET <variable> <value>")
+        return
+    variable = args[0].lower()
+    value = " ".join(args[1:])
+    nmap_variables[variable] = value
+    print(f"[*] {variable} set to: {value}")
 
+scripts_noargs = {
+    "backup-config-enum": "http-config-backup",
+    "drupal-users-enum": "http-drupal-enum-users",
+    "drupal-enum": "http-drupal-enum",
+    "enum": "http-enum",
+    "waf-detect": "http-waf-detect",
+    "webdav-scan": "http-webdav-scan",
+    "wordpress-users": "http-wordpress-users"
+}
 
-script_name = ""
+scripts_withargs = {
+    "uploads-exploit": "http-fileupload-exploiter",
+    "form-brute": "http-form-brute",
+    "form-fuzz": "http-form-fuzzer",
+    "waf-fingerprint": "http-waf-fingerprint",
+    "joomla-brute": "http-joomla-brute",
+    "phpmyadmin-dir-traversal": "http-phpmyadmin-dir-traversal",
+    "wordpress-brute": "http-wordpress-brute",
+    "wordpress-enum": "http-wordpress-enum"
+}
 
-def nmap_script_choice(choice):
-    script_name = script_list[choice]
+script_options = ""
+def nmap_script_option(option):
+    for script in option:
+        if script in scripts_withargs and not nmap_variables["args"]:
+            print("script selected require arguments but none were given")
+            return
+        
+        script_options += script + ","
+    script_options.chop()
 
-def build_nmap_command(target, port, script_name, script_args=None):
-    command = ['nmap', '-p', '80,443', '-sV', '--script', script_name, target]
+def build_nmap_command(target, port, script_options, script_args=None):
+    command = ['nmap', '-p', port, '-sV', '--script', script_options, target]
     
     if script_args:
         command.extend(['--script-args', script_args])
