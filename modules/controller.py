@@ -1,7 +1,7 @@
 import readline  # For improved command-line input
 import subprocess  # For executing shell commands
 
-variables = {}  # Dictionary to store variables
+variables = {"LHOST": "127.0.0.1", "RHOST":"0.0.0.0", "RPORT":80, "wordlist":"/usr/share/wordlist/dirb/common.txt"}  # Dictionary to store variables
 
 # Function to handle the SET command
 def set_variable(args):
