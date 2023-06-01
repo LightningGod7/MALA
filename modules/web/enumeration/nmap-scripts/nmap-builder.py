@@ -33,14 +33,14 @@ scripts_withargs = {
 }
 
 script_options = ""
+
 def nmap_script_option(option):
-    for script in option:
-        if script in scripts_withargs and not nmap_variables["args"]:
-            print("script selected require arguments but none were given")
+    if not nmap_variables["args"]:
+        if any(script in scripts_withargs for script in option):
+            print("Script selected requires arguments but none were given.")
             return
-        
-        script_options += script + ","
-    script_options.chop()
+    script_options = ','.join(option)
+    return script_options
 
 def build_nmap_command(target, port, script_options, script_args=None):
     command = ['nmap', '-p', port, '-sV', '--script', script_options, target]
@@ -57,11 +57,5 @@ def execute_nmap_command(command):
     except subprocess.CalledProcessError as e:
         return f"Command execution failed with return code {e.returncode}: {e.output}"
 
-# Example usage
-target = 'example.com'
-script_name = 'http-vuln-cve2014-3704'
-script_args = 'targeturi=/admin'
+script_options = nmap_script_option(nmap_variables["script"])
 
-command = build_nmap_command(target, script_name, script_args)
-output = execute_nmap_command(command)
-print(output)
