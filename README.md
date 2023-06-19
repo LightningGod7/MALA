@@ -5,20 +5,21 @@ Automation tools for web security
 
 
 
-===Enumeration===
 
+
+-------- Check List ----------
+
+=== Modules ===
+
+
+
+0. Basic enum
 - Vuln scanning
 - Banner grabbing
 - Tech Stack identification
 - Enumeration + abusing apis
 
-1. Check for subdomains (refer dnssec, dnsenum/ gobuster command?)
-  wfuzz -c -f subdomains.txt -w /usr/share/wordlists/subdomain-10000.txt -u "http://zeus.com/" -H "Host: FUZZ.zeus.com" --hl [lines]
-
-===Common web attacks===
-
-1. Directory brute force
- - Automate flow
+1. Directory brute force & fuzzing
 
 2. XSS 
  - Stored & reflected
@@ -44,7 +45,35 @@ Automation tools for web security
   - ID-ing SQLi via error-based payloads
   - UNION-based
   - Blind
-  
+
+8. Searchsploit integration
+
+
+=== Tool controllers ===
+9. Modularizing basic web tools
+- Break down the basic web tool's (Wfuzz, ffuf, gobuster, dirb etc) command structure and create a universal python string variable. 
+- plug and play by string variables in the full command string 
+- Bunch of variable setters per module call (if want do with auth, what wordlists are used, if got specify port etc)
+- The string will construct itself at the end
+
+10. Controller script
+- Need a controller file to make the tool act like msfconsole
+- Let users set bunch of variable before running any modules
+- Lets them continue to run other modules after some are completed or still runnning concurrently without having to type out the long ass command
+
+11. Command builder script
+- Modules will call this py file at the end
+- Modules pass this file all arguments required to form the command
+  - binary to use (nmap / gobuster / ffuf etc)
+  - arguments to use
+
+12. Startup Configs to initialize variables
+- Full path to binaries used
+
+13. Misc tools
+- URL encoder/ decoder
+
+
 ===Common Reference Tools===
 1. Domains
   - WHOIS
