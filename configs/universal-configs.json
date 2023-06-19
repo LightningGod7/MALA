@@ -1,0 +1,6 @@
+{
+    "LHOST": "127.0.0.1",
+    "RHOST": "0.0.0.0",
+    "RPORT": 80,
+    "wordlist": "/usr/share/wordlist/dirb/common.txt"
+}
