@@ -1,5 +1,10 @@
 import subprocess
 
+
+__name__ = "test scanner"
+__description__ = "test"
+
+
 nmap_variables = {"script": [], "args":""}
 
 def set_nmap_variables(args):

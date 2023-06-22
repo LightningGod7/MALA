@@ -1,5 +1,9 @@
 import os
 
+__name__ = "test scanner"
+__description__ = "test"
+
+
 def subdomain_fuzz(domain,wordlist):
     """This module uses ffuf to fuzz subdomains"""
     #if possible change the output later

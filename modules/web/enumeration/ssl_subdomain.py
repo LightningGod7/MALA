@@ -1,6 +1,10 @@
 import requests
 import json
 
+__name__ = "test scanner"
+__description__ = "test"
+
+
 def ssl_domain_enum(domain):
     """This module gets various subdomains listed in a domains SSL cert"""
     domain_list = []
