@@ -1,5 +1,10 @@
 import os
 
+# Define module metadata as variables
+__name__ = "Directory fuzzing"
+__description__ = "Performs basic directory scanning/ fuzzing. Enumerates directories found"
+
+
 def directory_fuzz(domain,port,wordlist):
     """This module uses ffuf to fuzz directories out from webpages"""
     #if possible change the output later

@@ -1,8 +1,8 @@
 import subprocess  # For executing shell commands
-import json # Read the config file for options
+
 
 variables = {}  # Dictionary to store variables
-modules = []
+modules = {}
 
 def initialize(loaded_modules, universal_variables):
     global modules, variables
@@ -35,6 +35,11 @@ def show_variables():
 def use_module(command):
     subprocess.call(command, shell=True)
 
+# Function to show modules loaded
+def show_modules():
+    for loaded_modules in modules:
+        print(loaded_modules)
+
 # Dictionary mapping commands to functions and their arguments
 command_handlers = {
     "set": {
@@ -48,7 +53,12 @@ command_handlers = {
     "use": {
         "function": use_module,
         "description": "set context to a module"
+    },
+    "modules": {
+        "function": show_modules,
+        "description": "show all available modules"
     }
+
 }
 
 # Main
