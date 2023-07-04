@@ -1,6 +1,10 @@
 
 import os
 
+__name__ = "test scanner"
+__description__ = "test"
+
+
 def wpscan_enumeration(target, disable_tls_checks=False, enumeration_flag=['a', 'p', 'v', 't']):
     """Perform WordPress enumeration using wpscan"""
     valid_flags = ['a', 'p', 'v', 't', 'u', 'e', 'd', 'c', 'm', 'i', 'r', 'f']
