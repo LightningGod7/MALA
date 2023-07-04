@@ -1,6 +1,13 @@
 {
-    "LHOST": "127.0.0.1",
-    "RHOST": "0.0.0.0",
-    "RPORT": 80,
-    "wordlist": "/usr/share/wordlist/dirb/common.txt"
+    "common_variables":
+    {
+        "LHOST": {"Value": "127.0.0.1", "Description": "Your machine"},
+        "RHOST": {"Value": "0.0.0.0", "Description": "Target"},
+        "RPORT": {"Value": 80, "Description": "Target Port"},
+        "wordlist": {"Value": "/usr/share/wordlists/rockyou.txt", "Description": "Wordlist to use"}
+    },
+    "module_variables":
+    {
+
+    }
 }

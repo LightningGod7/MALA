@@ -1,13 +1,19 @@
 import subprocess  # For executing shell commands
+import importlib
+import inspect 
+from tabulate import tabulate
 
+import executer
 
-variables = {}  # Dictionary to store variables
-modules = {}
+#DEFINE
+PROMPT = "MALA"
+MODULE = ""
 
-def initialize(loaded_modules, universal_variables):
-    global modules, variables
+def initialize(loaded_modules, universal_variables, tool_paths):
+    global modules, variables, tools
     modules = loaded_modules
     variables = universal_variables
+    tools = tool_paths
 
 def command_not_found(available_commands):
     print("No such command, refer to available commands: \n")
@@ -21,24 +27,60 @@ def set_variable(args):
     if len(args) < 2:
         print("Usage: SET <variable> <value>")
         return
-    variable = args[0]
-    value = " ".join(args[1:])
-    variables[variable] = value
-    print(f"[*] {variable} set to: {value}")
+    selected_var = args[0]
+    new_value = " ".join(args[1:])
+
+    for key1, nested_dict in variables.items():
+        if selected_var in nested_dict:
+            nested_dict[selected_var]["Value"] = new_value
+
+    print(f"[*] {selected_var} set to: {new_value}")
 
 # Function to handle the SHOW command
 def show_variables():
-    for variable, value in variables.items():
-        print(f"{variable}: {value}")
+    common_vars = variables["common_variables"]
+    module_vars = variables["module_variables"]
 
-# Function to handle executing other commands
-def use_module(command):
-    subprocess.call(command, shell=True)
+    common_table = [["Name", "Value", "Description"]]
+    for var, details in common_vars.items():
+        common_table.append([var, details["Value"], details["Description"]])
+
+    module_table = [["Name", "Value", "Description"]]
+    for var, details in module_vars.items():
+        module_table.append([var, details["Value"], details["Description"]])
+
+    print("\n--Common Options--\n")
+    print(tabulate(common_table, headers="firstrow", tablefmt="pretty"))
+    print("\n--Module Options--\n")
+    print(tabulate(module_table, headers="firstrow", tablefmt="pretty"))
+
+# Function to handle executing modules
+def use_module(arg):
+    global variables, MODULE, new_module
+    module_path = arg[0]
+    variables["module_variables"].clear()
+    try:
+        module = importlib.import_module(module_path)
+        module_class = inspect.getmembers(module, inspect.isclass)
+        if module_class:
+            class_name, class_obj = module_class[0]
+            new_module = class_obj(tools, variables)
+            MODULE = "(" + class_name + ")"
+            new_module.test()
+            return new_module
+    except ModuleNotFoundError:
+        print(f"Module '{module_path}' not found.")
 
 # Function to show modules loaded
 def show_modules():
     for loaded_modules in modules:
         print(loaded_modules)
+
+def execute():
+    command_list = new_module.get_command_list()
+    if not command_list:
+        print("Nothing to run. No module selected or compulsory options are not set.")
+    executer.execute_command(command_list)
 
 # Dictionary mapping commands to functions and their arguments
 command_handlers = {
@@ -50,22 +92,25 @@ command_handlers = {
         "function": show_variables,
         "description": "Show variables"
     },
+        "modules": {
+        "function": show_modules,
+        "description": "show all available modules"
+    },
     "use": {
         "function": use_module,
         "description": "set context to a module"
     },
-    "modules": {
-        "function": show_modules,
-        "description": "show all available modules"
-    }
-
+    "run": {
+        "function": execute,
+        "description": "execute the current command built from the module"
+    } 
 }
 
 # Main
 def main():
     while True:
         try:
-            user_input = input("wst > ").strip()
+            user_input = input("\n" + PROMPT + MODULE + " > ").strip()
             if user_input.lower() == "exit":
                 break
             command = user_input.split()[0].lower()

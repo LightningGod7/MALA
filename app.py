@@ -3,9 +3,11 @@ import json
 import controller
 import importlib.util #Dynamically load modules
 
+
 ###DECLARE
 config_file_path = r".\configs\universal-configs.json"
 modules_folder_path = r".\modules"
+TOOLS_PATH = r".\configs\toolpath.json"
 
 #Load all modules into dictionary
 def module_load(modules_folder):
@@ -19,11 +21,11 @@ def module_load(modules_folder):
                 modules.append(module_path)
     return modules
 
-#Load default configs
-def initialize_defaults(config_file):
+#Load json configs
+def initialize_configs(config_file):
     with open(config_file) as default_configs:
-        universal_variables = json.load(default_configs)
-    return universal_variables
+        configs = json.load(default_configs)
+    return configs
 
 def startup_message():
     #Color Coding
@@ -65,7 +67,8 @@ Any actions performed using this tool without proper consent are strictly prohib
 
 if __name__ == "__main__":
     modules = module_load(modules_folder_path)
-    variables = initialize_defaults(config_file_path)
+    variables = initialize_configs(config_file_path)
+    tool_paths = initialize_configs(TOOLS_PATH)
     startup_message()
-    controller.initialize(modules, variables)
+    controller.initialize(modules, variables, tool_paths)
     controller.main()
