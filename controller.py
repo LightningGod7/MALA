@@ -64,9 +64,8 @@ def use_module(arg):
         module_class = inspect.getmembers(module, inspect.isclass)
         if module_class:
             class_name, class_obj = module_class[0]
-            new_module = class_obj(tools, variables)
+            new_module = class_obj(variables)
             MODULE = "(" + class_name + ")"
-            new_module.test()
             return new_module
     except ModuleNotFoundError:
         print(f"Module '{module_path}' not found.")
@@ -77,6 +76,7 @@ def show_modules():
         print(loaded_modules)
 
 def execute():
+    new_module.initialize_before_run(tools,variables)
     command_list = new_module.get_command_list()
     if not command_list:
         print("Nothing to run. No module selected or compulsory options are not set.")
