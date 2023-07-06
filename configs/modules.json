@@ -1,0 +1,72 @@
+[
+    {
+      "module": "Sqlmap",
+      "description": "SQLmap is a tool used in penetration testing to detect and exploit SQL injection flaws",
+      "tagging": [
+        null
+      ]
+    },
+    {
+      "module": "XSStrike",
+      "description": "XSStrike is a Cross Site Scripting detection suite equipped with four hand written parsers, an intelligent payload generator, a powerful fuzzing engine and an incredibly fast crawler.",
+      "tagging": [
+        null
+      ]
+    },
+    {
+      "module": "WPScan",
+      "description": "WPScan scans for vulnerabilities in websites that run WordPress web engines.",
+      "tagging": [
+        null
+      ]
+    },
+    {
+      "module": "Nmap",
+      "description": "Nmap is used to discover hosts and services on a computer network by sending packets and analyzing the responses.",
+      "tagging": [
+        null
+      ]
+    },
+    {
+      "module": "SSL Domain Enumeration",
+      "description": "This module gets various subdomains listed in a domains SSL cert.",
+      "tagging": [
+        null
+      ]
+    },
+    {
+      "module": "Subdomain Fuzzing",
+      "description": "A fuzzing tool used for enumerating subdomains through multiple methods.",
+      "tagging": [
+        null
+      ]
+    },
+    {
+      "module": "URL Enumeration",
+      "description": "An enumeration tool used to discover resources in a web server database through different methods.",
+      "tagging": [
+        null
+      ]
+    },
+    {
+      "module": "WAF Fingerprinting",
+      "description": "This module will try to detect the presence of a web application firewall and its type and version.",
+      "tagging": [
+        null
+      ]
+    },
+    {
+      "module": "Web Technology Enumeration",
+      "description": "Identifies the technologies used on a webpage using whatweb.",
+      "tagging": [
+        null
+      ]
+    },
+    {
+      "module": "Searchsploit",
+        "description": "Searchsploit allows you to easily search The Exploit Database archive for entries based on criteria of your choosing.",
+      "tagging": [
+        null
+      ]
+    }
+  ]
