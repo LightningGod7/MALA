@@ -113,6 +113,9 @@ def main():
             user_input = input("\n" + PROMPT + MODULE + " > ").strip()
             if user_input.lower() == "exit":
                 break
+            elif user_input == "":
+                command_not_found(command_handlers)
+                continue
             command = user_input.split()[0].lower()
             args = user_input.split()[1:]
 

@@ -5,9 +5,9 @@ import importlib.util #Dynamically load modules
 
 
 ###DECLARE
-config_file_path = r"./configs/universal-configs.json"
-modules_folder_path = r"./modules"
-TOOLS_PATH = r"./configs/toolpath.json"
+config_file_path = r".\configs\universal-configs.json"
+modules_folder_path = r".\modules"
+TOOLS_PATH = r".\configs\toolpath.json"
 
 #Load all modules into dictionary
 def module_load(modules_folder):

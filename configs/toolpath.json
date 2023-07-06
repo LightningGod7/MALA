@@ -8,7 +8,6 @@
     "wafw00f": "/usr/bin/wafw00f",
     "nmap": "/usr/bin/nmap",
     "searchsploit": "/usr/bin/searchsploit",
-    "sqlmap": "/usr/bin/sqlmap",
     "gobuster": "/usr/bin/gobuster",
     "wfuzz": "/usr/bin/wfuzz",
     "ffuf": "/usr/bin/ffuf",

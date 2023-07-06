@@ -1,9 +1,6 @@
 import os
 import json
 
-__name__ = "test scanner"
-__description__ = "test"
-
 def web_tech_id(domain):
     """Identifies the technologies used on a webpage using whatweb and exports it in json format"""
     command = "whatweb -a3 " + domain + " --log-json=./technologies.txt"
