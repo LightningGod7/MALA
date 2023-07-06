@@ -82,7 +82,6 @@ class searchsploit:
         #if no, warn that no edb = no search db
 
         
-
     def update_edb():
         edb_filename = 'edb.csv'
         directory = 'modules/edb'
@@ -100,18 +99,23 @@ class searchsploit:
         #need requests lib
 
     def search_main():
+        print("function")
         #main search function, splits into search raw (whole) or search for title only (helper functions below)
 
     def search_raw():
+        print("function")
         #helper function performs a normal search (OR of all queries, split by spacing)
 
     def search_title():
+        print("function")
         #helper function performs a title-only search
         
     def query_mirror():
+        print("function")
         #helper function to download specific exploits
         # MUST be a single exloit (ID)
 
     def query_mirrors():
+        print("function")
         #helper function to download list of exploits
         #OPTIONAL FUNCTION that i just thought of
