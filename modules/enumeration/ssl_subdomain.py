@@ -1,17 +1,17 @@
 class ssl_subdomain:
-    def __init__(self, tools, variables):
+    def __init__(self, variables):
+        self.module_variables = variables["module_variables"]
 
+    def initialize_before_run(self,tools,variables):
         ### GET common variables
         self.variables = variables
         common_vars = variables.get("common_variables")
         self.target = common_vars["RHOST"]["Value"]
-        self.port = common_vars["RPORT"]["Value"]
         self.curl = tools.get("curl")
 
     def test(self):
         print("Imported this module")
         print(self.target)
-        print(self.port)
         print(self.curl)
         print("RHOST format is: www.example.com")
 

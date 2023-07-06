@@ -1,22 +1,18 @@
 class waf_fingerprint:
-    def __init__(self, tools, variables):
+    def __init__(self, variables):
+        self.module_variables = variables["module_variables"]
 
-        ### Get Common Variables
+    def initialize_before_run(self,tools,variables):
+        ### GET common variables
         self.variables = variables
         common_vars = variables.get("common_variables")
         self.target = common_vars["RHOST"]["Value"]
         self.port = common_vars["RPORT"]["Value"]
-        self.wafw00f = tools.get("wafw00f")
-
-        # module_variables["output"]
-        self.url = "http://" + self.target
-        if self.port:
-            self.url += ":" + str(self.port)
+        self.xss = tools.get("wafw00f")
 
     def test(self):
         print("Imported this module")
         print(self.target)
-        print(self.port)
         print(self.wafw00f)
 
     def get_command_list(self):
@@ -26,7 +22,8 @@ class waf_fingerprint:
         if not self.target:
             print("Not all compulsory options are set. Check with `options` command")
             return
-        
+        self.url = "http://" + self.target
+
         prefix = self.wafw00f
         target_arg = "-a " + self.url
         command_list = [prefix, target_arg]
