@@ -30,11 +30,33 @@ def set_variable(args):
     selected_var = args[0]
     new_value = " ".join(args[1:])
 
+
+    if new_module.validate_input(selected_var, new_value):
+        for key1, nested_dict in variables.items():
+            if selected_var in nested_dict:
+                nested_dict[selected_var]["Value"] = new_value
+                print(f"[*] {selected_var} set to: {new_value}")
+        
+
+        
+
+#Function to clear a variable
+def clear_variable(args):
+    global variables
+    selected_var = args[0]
+    new_value = ""
+
     for key1, nested_dict in variables.items():
         if selected_var in nested_dict:
             nested_dict[selected_var]["Value"] = new_value
+            print(f"[*] {selected_var} set to: {new_value}")
+            return
+    print(f"[*] {selected_var} does not exist, use `variables` command to see available options")
+        
 
-    print(f"[*] {selected_var} set to: {new_value}")
+        
+    
+        
 
 # Function to handle the SHOW command
 def show_variables():
@@ -63,7 +85,7 @@ def use_module(arg):
         module = importlib.import_module(module_path)
         module_class = inspect.getmembers(module, inspect.isclass)
         if module_class:
-            class_name, class_obj = module_class[0]
+            class_name, class_obj = module_class[-1]
             new_module = class_obj(variables)
             MODULE = "(" + class_name + ")"
             return new_module
@@ -87,6 +109,10 @@ command_handlers = {
     "set": {
         "function": set_variable,
         "description": "Set a variable"
+    },
+    "clear": {
+        "function": clear_variable,
+        "description": "clear the variable value"
     },
     "variables": {
         "function": show_variables,
