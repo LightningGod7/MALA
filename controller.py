@@ -67,9 +67,9 @@ def show_variables():
     for var, details in common_vars.items():
         common_table.append([var, details["Value"], details["Description"]])
 
-    module_table = [["Name", "Value", "Description"]]
+    module_table = [["Name", "Value", "Description", "Required"]]
     for var, details in module_vars.items():
-        module_table.append([var, details["Value"], details["Description"]])
+        module_table.append([var, details["Value"], details["Description"], details["Required"]])
 
     print("\n--Common Options--\n")
     print(tabulate(common_table, headers="firstrow", tablefmt="pretty"))

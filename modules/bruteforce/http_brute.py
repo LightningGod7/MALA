@@ -7,23 +7,23 @@ class http_bruteforce(baseModule):
         self.module_variables = variables["module_variables"]
         self.module_variables["username"] = {"Value": "admin", "Description": "single username", "Required": True}
         self.module_variables["userlist"] = {"Value":"", "Description":"username list", "Required":True}
-        self.module_variables["userfield"] = {"Value": "username", "Description":"username html field", "Required":True}
         self.module_variables["password"] = {"Value":"password", "Description":"single password", "Required":True}
-
+        self.module_variables["passlist"] = {"Value": "", "Description":"password list", "Required":False}
+        
         self.module_variables["mode"] = {"Value": "basic", "Description":"basic auth `basic` | http get `get` | http post `post`", "Required":True}
         self.valid_modes = {"http basic":["b", "basic"],"http-get-form":["g", "get"],"http-post-form":["p", "post"]}
         ##Required only for http-get and http-post
         self.module_variables["error-pattern"] = {"Value": "invalid", "Description":"error pattern to match on failed attempt", "Required":False}
         self.module_variables["urlpath"] = {"Value": "/admin/login.php", "Description":"url path to the login form on the target e.g. /", "Required":False}
-        self.module_variables["passlist"] = {"Value": "", "Description":"password list", "Required":False}
+        self.module_variables["userfield"] = {"Value": "username", "Description":"username html field", "Required":True}       
         self.module_variables["passfield"] = {"Value": "pass", "Description":"password html field", "Required":False}
-        self.mode_required_list = []
+        self.mode_required_dict = {"http basic":[],"http-get-form":["error-pattern","urlpath","userfield","passfield"],"http-post-form":["error-pattern","urlpath","userfield","passfield"]}
         ##Optional
         self.module_variables["port"] = {"Value": "", "Description":"target port", "Required":False}
         self.module_variables["cookie"] = {"Value": "", "Description":"cookie for session authentication", "Required":False}
         self.module_variables["threads"] = {"Value": "", "Description":"number of threads to use", "Required":False}
 
-        super().__init__(self.valid_modes)
+        super().__init__(variables,self.valid_modes, self.mode_required_dict)
 
     #Override the abstract class to set tool
     def initialize_before_run(self, tools, variables):

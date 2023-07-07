@@ -1,7 +1,9 @@
 class baseModule:
-    def __init__(self,mode_dict = {}):
+    def __init__(self,variables,mode_dict = {},mode_required_dict= {}):
         # self.variables = variables
+        self.module_variables = variables["module_variables"]
         self.mode_dict = mode_dict
+        self.mode_required_dict = mode_required_dict
     def validate_input(self, option, value):
         if option not in self.module_variables:
             print(f"Option {option} does not exist to be set. Check available options with the command `variables`")
@@ -20,12 +22,14 @@ class baseModule:
         for mode, mode_pattern in self.mode_dict.items():
             if mode_input in mode_pattern:
                 print(f"Setting mode to {mode}")
-                self.required_mode_options()
+                self.required_mode_options(mode)
                 return mode
         print(f"{mode_input} is not a valid mode. Check available modes with command `variables`")
         return None
 
-    def required_mode_options(self):
+    def required_mode_options(self, current_mode):
+        for options in self.mode_required_dict[current_mode]:
+            self.module_variables[options]["Required"] = True
         return
 
     def get_command_list(self):
