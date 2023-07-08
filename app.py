@@ -3,11 +3,10 @@ import json
 import controller
 import importlib.util #Dynamically load modules
 
-
 ###DECLARE
-config_file_path = r"./configs/universal-configs.json"
-modules_folder_path = r"./modules"
-TOOLS_PATH = r"./configs/toolpath.json"
+VARIABLES_CONFIG_PATH = os.path.join(".", "configs", "variables.json")
+MODULES_FOLDER = os.path.join(".", "modules")
+TOOLS_CONFIG_PATH = os.path.join(".", "configs", "toolpath.json")
 
 #Load all modules into dictionary
 def module_load(modules_folder):
@@ -66,9 +65,9 @@ Any actions performed using this tool without proper consent are strictly prohib
     return
 
 if __name__ == "__main__":
-    modules = module_load(modules_folder_path)
-    variables = initialize_configs(config_file_path)
-    tool_paths = initialize_configs(TOOLS_PATH)
+    modules = module_load(MODULES_FOLDER)
+    variables = initialize_configs(VARIABLES_CONFIG_PATH)
+    tool_paths = initialize_configs(TOOLS_CONFIG_PATH)
     startup_message()
     controller.initialize(modules, variables, tool_paths)
     controller.main()

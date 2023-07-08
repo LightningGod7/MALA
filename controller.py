@@ -1,4 +1,3 @@
-import subprocess  # For executing shell commands
 import importlib
 import inspect 
 from tabulate import tabulate
@@ -15,13 +14,7 @@ def initialize(loaded_modules, universal_variables, tool_paths):
     variables = universal_variables
     tools = tool_paths
 
-def command_not_found(available_commands):
-    print("No such command, refer to available commands: \n")
-    for command, handler in available_commands.items():
-        command_description = handler.get("description", "No description")
-        print(f"{command} - {command_description}")
-
-# Function to handle the SET command
+#set variable
 def set_variable(args):
     global variables
     if len(args) < 2:
@@ -30,39 +23,39 @@ def set_variable(args):
     selected_var = args[0]
     new_value = " ".join(args[1:])
 
-    for variable_type, nested_dict in variables.items():
-        if selected_var in nested_dict and variable_type == "common_variables":
-            nested_dict[selected_var]["Value"] = new_value
+    for variable_type, variable_options in variables.items():
+        if selected_var in variable_options and variable_type == "common_variables":
+            variable_options[selected_var]["Value"] = new_value
             print(f"[*] {selected_var} set to: {new_value}")
-        elif selected_var in nested_dict and variable_type == "module_variables":
+            return
+        elif selected_var in variable_options and variable_type == "module_variables":
             if new_module.validate_input(selected_var, new_value):
-                nested_dict[selected_var]["Value"] = new_value
+                variable_options[selected_var]["Value"] = new_value
                 print(f"[*] {selected_var} set to: {new_value}")
-        else: 
-            print(f"[*] {selected_var} is not a valid variable. use `variable` command to see available options")
-            
+            return
+    print(f"[*] {selected_var} is not a valid variable. use `variable` command to see available options")
     
-#Function to clear a variable
+#clear variable
 def clear_variable(args):
     global variables
     selected_var = args[0]
     new_value = ""
 
-    for key1, nested_dict in variables.items():
-        if selected_var in nested_dict:
-            nested_dict[selected_var]["Value"] = new_value
-            print(f"[*] {selected_var} set to: {new_value}")
+    for variable_type, variable_options in variables.items():
+        if selected_var in variable_options:
+            variable_options[selected_var]["Value"] = new_value
+            print(f"[*] {selected_var} cleared")
             return
     print(f"[*] {selected_var} does not exist, use `variables` command to see available options")
 
-# Function to handle the SHOW command
+#show all variables and their values
 def show_variables():
     common_vars = variables["common_variables"]
     module_vars = variables["module_variables"]
 
     common_table = [["Name", "Value", "Description"]]
     for var, details in common_vars.items():
-        common_table.append([var, details["Value"], details["Description"]])
+        common_table.append([var, details["Value"], details["Description"], details["Required"]])
 
     module_table = [["Name", "Value", "Description", "Required"]]
     for var, details in module_vars.items():
@@ -73,7 +66,12 @@ def show_variables():
     print("\n--Module Options--\n")
     print(tabulate(module_table, headers="firstrow", tablefmt="pretty"))
 
-# Function to handle executing modules
+#show available modules
+def show_modules():
+    for loaded_modules in modules:
+        print(loaded_modules)
+
+#select module to use
 def use_module(arg):
     global variables, MODULE, new_module
     module_path = arg[0]
@@ -87,46 +85,80 @@ def use_module(arg):
             MODULE = "(" + class_name + ")"
             return new_module
     except ModuleNotFoundError:
-        print(f"Module '{module_path}' not found.")
+        print(f"\nModule '{module_path}' not found.")
 
-# Function to show modules loaded
-def show_modules():
-    for loaded_modules in modules:
-        print(loaded_modules)
-
+#execute the module
 def execute():
     new_module.initialize_before_run(tools,variables)
     command_list = new_module.get_command_list()
     if not command_list:
-        print("Nothing to run. No module selected or compulsory options are not set.")
-    executer.execute_command(command_list)
+        print("\nFailed to run. No module selected or compulsory options were not set.")
+        return
+    
+    #Create the actual command from a list
+    vanilla_command = " ".join(command_list)
+
+    #Add command to executed_list
+    executer.execute_command(vanilla_command)
+
+#show list of executed commands
+def show_running():
+
+    return 0
+
+#check status of a running command or all running commands
+def show_status(arg):
+    return 0
+
+#handle for when unknown command is given
+def command_not_found(available_commands):
+    print("No such command, refer to available commands: \n")
+    for command, handler in available_commands.items():
+        command_description = handler.get("description", "No description")
+        print(f"{command} - {command_description}")
 
 # Dictionary mapping commands to functions and their arguments
 command_handlers = {
     "set": {
         "function": set_variable,
-        "description": "Set a variable"
+        "description": "Set a variable",
+        "valid_inputs": ["set"]
     },
     "clear": {
         "function": clear_variable,
-        "description": "clear the variable value"
+        "description": "Clear the variable value",
+        "valid_inputs": ["clear"]
     },
     "variables": {
         "function": show_variables,
-        "description": "Show variables"
+        "description": "Show variables",
+        "valid_inputs": ["variables", "options", "vars"]
     },
-        "modules": {
+    "modules": {
         "function": show_modules,
-        "description": "show all available modules"
+        "description": "Show all available modules",
+        "valid_inputs": ["modules", "mods"]
     },
     "use": {
         "function": use_module,
-        "description": "set context to a module"
+        "description": "Set context to a module",
+        "valid_inputs": ["use"]
     },
     "run": {
         "function": execute,
-        "description": "execute the current command built from the module"
-    } 
+        "description": "Execute the current command built from the module",
+        "valid_inputs": ["run"]
+    },
+    "running": {
+    "function": show_running,
+    "description": "Show running commands",
+    "valid_inputs": ["running"]
+    },
+    "status": {
+        "function": show_status,
+        "description": "show status of commands",
+        "valid_inputs": ["status"]
+    }
 }
 
 # Main
@@ -138,9 +170,9 @@ def main():
                 break
             command = user_input.split()[0].lower()
             args = user_input.split()[1:]
-
-            if command in command_handlers:
-                command_function = command_handlers[command].get("function")
+            matched_command = [command_key for command_key, command_info in command_handlers.items() if command in command_info["valid_inputs"]]        
+            if matched_command:
+                command_function = command_handlers[matched_command[0]].get("function")
                 command_function(args) if len(args) != 0 else command_function()
             else:
                 command_not_found(command_handlers)

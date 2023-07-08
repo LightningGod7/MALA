@@ -1,3 +1,4 @@
+import time
 from modules.base_module import baseModule
 
 class http_bruteforce(baseModule):
@@ -5,27 +6,30 @@ class http_bruteforce(baseModule):
         ### SET module variables
         self.module_variables = variables["module_variables"]
 
-        ##REQUIRED
-        self.module_variables["username"] = {"Value": "admin", "Description": "single username", "Required": True}
+        ##ALWAYS REQUIRED
+        self.module_variables["username"] = {"Value": "admin", "Description": "single username (takes precedence over userlist)", "Required": True}
         self.module_variables["userlist"] = {"Value":"", "Description":"username list", "Required":True}
-        self.module_variables["password"] = {"Value":"password", "Description":"single password", "Required":True}
+        self.module_variables["password"] = {"Value":"password", "Description":"single password (takes precedence over passlist)", "Required":True}
         self.module_variables["passlist"] = {"Value": "", "Description":"password list", "Required":False}
         
-        self.module_variables["mode"] = {"Value": "basic", "Description":"basic auth `basic` | http get `get` | http post `post`", "Required":True}
-        self.valid_modes = {"http basic":["b", "basic"],"http-get-form":["g", "get"],"http-post-form":["p", "post"]}
+        self.module_variables["mode"] = {"Value": "basic", "Description":"basic auth | http get | http post", "Required":True}
+
+        self.always_required = ["mode","username","userlist","password","passlist"]
+        self.valid_modes = {"http basic":["b", "basic", "d", "digest"],"http-get-form":["g", "get"],"http-post-form":["p", "post"]}
 
         ##Required only for http-get and http-post
         self.module_variables["error-pattern"] = {"Value": "invalid", "Description":"error pattern to match on failed attempt", "Required":False}
         self.module_variables["urlpath"] = {"Value": "/admin/login.php", "Description":"url path to the login form on the target e.g. /", "Required":False}
         self.module_variables["userfield"] = {"Value": "username", "Description":"username html field", "Required":True}       
         self.module_variables["passfield"] = {"Value": "pass", "Description":"password html field", "Required":False}
+
         self.mode_required_dict = {"http basic":[],"http-get-form":["error-pattern","urlpath","userfield","passfield"],"http-post-form":["error-pattern","urlpath","userfield","passfield"]}
 
         ##Optional
         self.module_variables["cookie"] = {"Value": "", "Description":"cookie for session authentication", "Required":False}
         self.module_variables["threads"] = {"Value": "", "Description":"number of threads to use", "Required":False}
 
-        super().__init__(variables,self.valid_modes, self.mode_required_dict)
+        super().__init__(variables, self.always_required, self.valid_modes, self.mode_required_dict)
 
     #Override the abstract class to set tool
     def initialize_before_run(self, tools, variables):
@@ -41,12 +45,18 @@ class http_bruteforce(baseModule):
         self.passlist = self.module_variables["passlist"]["Value"]
 
         if not (self.username or self.userlist) or not (self.password or self.passlist) or not self.target:
+            print("You need to set either static credentials or wordlists to use this mode. Run command `variables` to see required options\n")
             return
 
-##Handle which credential opption to use##
+##Handle which credential option to use##
 
         #Checking which mode to execute
         prefix = self.hydra
+        if self.username and self.userlist:
+            print("Both username and userlist has been set. Using username\n")
+        if self.password and self.passlist:
+            print("Both password and passlist has been set. Using password\n")  
+        time.sleep(1)      
         user_arg = "-l " + self.username if self.username else "-L " + self.userlist
         pass_arg = "-p " + self.password if self.password else "-P " + self.passlist
         method = self.module_variables["mode"]["Value"]
@@ -106,7 +116,7 @@ class http_bruteforce(baseModule):
         #Define all options
         port = self.port
         threads = self.module_variables["threads"]["Value"]
-        port_arg = "-s " + port if port else None
+        port_arg = "-s " + str(port) if port else None
         threads_arg = "-t " + threads if threads else None
         additional_options = [port_arg,threads_arg]
         return [option for option in additional_options if option]

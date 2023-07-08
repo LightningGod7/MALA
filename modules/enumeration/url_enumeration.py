@@ -4,8 +4,10 @@ class url_enumeration(baseModule):
         ### SET module variables
         self.module_variables = variables["module_variables"]
 
-        #Required
-        self.module_variables["mode"] = {"Value": " ", "Description": "directory or range", "Required":True}
+        #Always Required
+        self.module_variables["mode"] = {"Value": "d", "Description": "directory or range", "Required":True}
+        
+        self.always_required = ["mode"]
         self.valid_modes = {"directory":["d","dir","directory"],"range": ["r", "ran", "range"],"subdomain":["s", "sub", "subdomain"]}
 
         #Required only for range_fuzz
@@ -14,12 +16,12 @@ class url_enumeration(baseModule):
 
         #Optional
         self.module_variables["extensions"] = {"Value":"", "Description":"file extensions to fuzz (e.g. .php, .html, .txt)", "Required":False}
-        self.module_variables["recursive"] = {"Value":0, "Description":"recursion in enumeration and depth. (-1 for infinite)", "Required":False}
+        self.module_variables["recursive"] = {"Value":"", "Description":"recursion in enumeration and depth. (`i` for infinite)", "Required":False}
         self.module_variables["username"] = {"Value": "", "Description":"auth mode will be enabled if both user and pass are set", "Required":False}
         self.module_variables["password"] = {"Value": "", "Description":"auth mode will be enabled if both user and pass are set", "Required":False}
         self.module_variables["cookie"] = {"Value": "", "Description":"cookie session authentication. Takes precedence over credentials auth", "Required":False}
     
-        super().__init__(variables,self.valid_modes, self.mode_required_dict)
+        super().__init__(variables,self.always_required, self.valid_modes, self.mode_required_dict)
 
     def initialize_before_run(self,tools,variables):
         ### super constructor
@@ -63,17 +65,17 @@ class url_enumeration(baseModule):
         return command_list
     
     def range_fuzz(self):
-        if not fuzz_range:
-            print("Please supply range to fuzz for range fuzzing mode")
-            return
         fuzz_range = self.module_variables["range"]["Value"]
+        if not fuzz_range:
+            print("Please supply range to fuzz for range fuzzing mode\n")
+            return
         prefix = self.wfuzz
         range_arg = "-z range," + fuzz_range
         target_arg = "-u " + self.url
         command_list = [prefix, range_arg, target_arg]
 
         ##Add cases for recursive, authentication, extensions, diff types of output etc
-        command_list += self.check_additional_options("-e", "-cookies","r")
+        command_list += self.check_additional_options("-e", "-b","r")
         return command_list
     
     def subdomain_fuzz(self):
@@ -89,39 +91,44 @@ class url_enumeration(baseModule):
         module_options = self.module_variables
         
         #Define all options
-        extentions = []
         recursive = module_options["recursive"]["Value"]
         username = module_options["username"]["Value"]
         password = module_options["password"]["Value"]
         cookie = module_options["cookie"]["Value"]
-        extension_arg = ""
-        recursive_arg = ""
-        auth_arg = ""
 
-        #Check extentions option
-        if len(module_options["extensions"]["Value"]):
-            #Check that all extentions are prepended with '.'
-            extensions = ['.' + ext if not ext.startswith('.') else ext for ext in module_options["extensions"]["Value"]]
-            extension_arg = ext_flag + " " + ''.join(extentions)
+        #Check extensions flag
+        if module_options["extensions"]["Value"]:
+            extention_list = module_options["extensions"]["Value"].split(",")
+            extensions = ['.' + ext if not ext.startswith('.') else ext for ext in extention_list]
+            extension_arg = ext_flag + " " + ','.join(extensions)
+        else:
+            extension_arg = ""
 
         #Check recursive flag
         if recursive=="i":
             recursive_arg = "-r"
         elif recursive:
             recursive_arg = "-r --depth " + recursive
+        else:
+            recursive_arg = ""
         
+
+        #Set auth flag to empty 1st
+        auth_arg = ""
+
         #Check Auth flag
         if username and password:
             if cred_flag == "g":
                 auth_arg = " -U " + username + " -P " + password
             else:
-                auth_arg = username + ":" + password
+                auth_arg = "-b " + username + ":" + password
         
+        #Check cookie flag
         if cookie:
             auth_arg = cookie_flag + " " + cookie
         
         additional_options = [extension_arg,recursive_arg,auth_arg]
-        return additional_options
+        return [option for option in additional_options if option]
 
 
    

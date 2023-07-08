@@ -1,7 +1,8 @@
 class baseModule:
-    def __init__(self,variables,mode_dict = {},mode_required_dict= {}):
+    def __init__(self,variables,always_required,mode_dict = {},mode_required_dict= {}):
         # self.variables = variables
         self.module_variables = variables["module_variables"]
+        self.always_required_options = always_required
         self.mode_dict = mode_dict
         self.mode_required_dict = mode_required_dict
 
@@ -26,13 +27,18 @@ class baseModule:
         ### Check mode
         for mode, mode_pattern in self.mode_dict.items():
             if mode_input in mode_pattern:
-                print(f"Setting mode to {mode}")
                 self.required_mode_options(mode)
                 return mode
         print(f"{mode_input} is not a valid mode. Check available modes with command `variables`")
         return None
 
     def required_mode_options(self, current_mode):
+        #Reset all required options 1st
+        always_required_set = set(self.always_required_options)
+        for option, option_values in self.module_variables.items():
+            option_values["Required"] = option in always_required_set
+
+        #Set mode required options
         for options in self.mode_required_dict[current_mode]:
             self.module_variables[options]["Required"] = True
         return
