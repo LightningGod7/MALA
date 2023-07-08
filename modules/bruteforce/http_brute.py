@@ -19,7 +19,6 @@ class http_bruteforce(baseModule):
         self.module_variables["passfield"] = {"Value": "pass", "Description":"password html field", "Required":False}
         self.mode_required_dict = {"http basic":[],"http-get-form":["error-pattern","urlpath","userfield","passfield"],"http-post-form":["error-pattern","urlpath","userfield","passfield"]}
         ##Optional
-        self.module_variables["port"] = {"Value": "", "Description":"target port", "Required":False}
         self.module_variables["cookie"] = {"Value": "", "Description":"cookie for session authentication", "Required":False}
         self.module_variables["threads"] = {"Value": "", "Description":"number of threads to use", "Required":False}
 
@@ -59,6 +58,7 @@ class http_bruteforce(baseModule):
         verbose_arg = "-V"
         command_list = [prefix, user_arg, pass_arg, verbose_arg, target_arg]
         command_list.append(self.module_variables["urlpath"]["Value"]) if self.module_variables["urlpath"]["Value"] else None
+        command_list += self.check_additional_options()
         return command_list
 
     def get_brute(self,prefix,user_arg,pass_arg):
@@ -68,6 +68,7 @@ class http_bruteforce(baseModule):
         mode_arg = "http-get-form"
         get_arg = self.create_mode_arg_input()
         command_list = [prefix, user_arg, pass_arg, verbose_arg, target_arg, mode_arg, get_arg]
+        command_list += self.check_additional_options()
         return command_list
     
     def post_brute(self,prefix,user_arg,pass_arg):
@@ -76,6 +77,7 @@ class http_bruteforce(baseModule):
         mode_arg = "http-post-form"
         post_arg = self.create_mode_arg_input()
         command_list = [prefix, user_arg, pass_arg, verbose_arg, target_arg, mode_arg, post_arg]
+        command_list += self.check_additional_options()
         return command_list
         
     def create_mode_arg_input(self):
@@ -84,14 +86,20 @@ class http_bruteforce(baseModule):
         password_field = self.module_variables["passfield"]["Value"] + "=^PASS^"
         credential_field = username_field + "&" + password_field
         error_field = self.module_variables["error-pattern"]["Value"]
-        mode_arg_input = "'" + urlformaction + ":" + credential_field + ":" + error_field + "'"
-        return mode_arg_input
-    
-    def check_additional_options(self,calling_method):
+        mode_arg_input = urlformaction + ":" + credential_field + ":" + error_field
 
+        #Optional cookie field
+        if self.module_variables["cookie"]["Value"]:
+            cookie_field = ":H=Cookie: " + self.module_variables["cookie"]["Value"]
+            mode_arg_input += cookie_field
+    
+        return '"' + mode_arg_input + '"'
+    
+    def check_additional_options(self):
         #Define all options
-        port = self.module_variables["port"]["Value"]
-        cookie = self.module_variables["cookie"]["Value"]
+        port = self.port
         threads = self.module_variables["threads"]["Value"]
-        additional_options = []
-        return additional_options
+        port_arg = "-s " + port if port else None
+        threads_arg = "-t " + threads if threads else None
+        additional_options = [port_arg,threads_arg]
+        return [option for option in additional_options if option]

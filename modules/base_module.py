@@ -4,6 +4,8 @@ class baseModule:
         self.module_variables = variables["module_variables"]
         self.mode_dict = mode_dict
         self.mode_required_dict = mode_required_dict
+
+    ###Handling Inputs
     def validate_input(self, option, value):
         if option not in self.module_variables:
             print(f"Option {option} does not exist to be set. Check available options with the command `variables`")
@@ -17,6 +19,9 @@ class baseModule:
         if option == "port":
             return self.is_valid_port(value)
         
+        return True
+        
+    ###Initializing mode options
     def initialize_selected_mode(self, mode_input):
         ### Check mode
         for mode, mode_pattern in self.mode_dict.items():
@@ -32,6 +37,7 @@ class baseModule:
             self.module_variables[options]["Required"] = True
         return
 
+    ###Initializing for command execution
     def get_command_list(self):
         return
     
@@ -45,6 +51,9 @@ class baseModule:
         # module_variables["output"]
     #MAIN SAUCE
 
+
+
+    ###Various input value checks
     def is_valid_port(self, port):
         try:
             port = int(port)

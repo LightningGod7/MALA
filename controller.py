@@ -30,16 +30,18 @@ def set_variable(args):
     selected_var = args[0]
     new_value = " ".join(args[1:])
 
-
-    if new_module.validate_input(selected_var, new_value):
-        for key1, nested_dict in variables.items():
-            if selected_var in nested_dict:
+    for variable_type, nested_dict in variables.items():
+        if selected_var in nested_dict and variable_type == "common_variables":
+            nested_dict[selected_var]["Value"] = new_value
+            print(f"[*] {selected_var} set to: {new_value}")
+        elif selected_var in nested_dict and variable_type == "module_variables":
+            if new_module.validate_input(selected_var, new_value):
                 nested_dict[selected_var]["Value"] = new_value
                 print(f"[*] {selected_var} set to: {new_value}")
-        
-
-        
-
+        else: 
+            print(f"[*] {selected_var} is not a valid variable. use `variable` command to see available options")
+            
+    
 #Function to clear a variable
 def clear_variable(args):
     global variables
@@ -52,11 +54,6 @@ def clear_variable(args):
             print(f"[*] {selected_var} set to: {new_value}")
             return
     print(f"[*] {selected_var} does not exist, use `variables` command to see available options")
-        
-
-        
-    
-        
 
 # Function to handle the SHOW command
 def show_variables():
