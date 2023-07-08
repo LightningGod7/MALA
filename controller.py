@@ -1,6 +1,7 @@
 import importlib
 import inspect 
 from tabulate import tabulate
+from prettytable import PrettyTable
 from datetime import datetime
 import os
 import executer
@@ -77,28 +78,36 @@ def show_variables():
 def show_modules(arg=[""]):
     module_names = list(module_mapping.keys())
     module_names.remove("base_module")
-    if arg[0] == "add":
-        # Load the JSON file
-        with open(modules_config_path) as file:
-            data = json.load(file)
+    with open(modules_config_path) as file:
+        module_menu_data = json.load(file)
 
+    if arg[0] == "add":
         # Compare items in loaded_modules with keys in the JSON file
         for module in module_names:
-            if module not in data:
+            if module not in module_menu_data:
                 # Add new entry to the JSON file
-                data[module] = {
+                module_menu_data[module] = {
                     "Description": "",
                     "Tagging": [""]
                 }
 
         # Write the updated JSON data back to the file
         with open(modules_config_path, 'w') as file:
-            json.dump(data, file, indent=4)
+            json.dump(module_menu_data, file, indent=4)
         print("\nModules added to config")
         return
+    
     print("\n")
-    for module_name in module_names:
-        print(module_name)
+    table = PrettyTable()
+    table.field_names = ["Module Name", "Module Description", "Module Tagging"]
+    table.max_table_width=120
+    for module , module_info in module_menu_data.items():
+        description = module_info["Description"]
+        tagging = module_info["Tagging"][0] if module_info["Tagging"] else "None"
+
+        table.add_row([module, description, tagging])
+
+    print(table)
 
 #select module to use
 def use_module(arg):

@@ -1,0 +1,3 @@
+tabulate
+prettytable
+psutil
