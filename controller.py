@@ -9,10 +9,11 @@ PROMPT = "MALA"
 MODULE = ""
 
 def initialize(loaded_modules, universal_variables, tool_paths):
-    global modules, variables, tools
+    global modules, variables, tools, executed_processes
     modules = loaded_modules
     variables = universal_variables
     tools = tool_paths
+    executed_processes = {}
 
 #set variable
 def set_variable(args):
@@ -73,7 +74,7 @@ def show_modules():
 
 #select module to use
 def use_module(arg):
-    global variables, MODULE, new_module
+    global variables, MODULE, new_module, class_name
     module_path = arg[0]
     variables["module_variables"].clear()
     try:
@@ -98,12 +99,26 @@ def execute():
     #Create the actual command from a list
     vanilla_command = " ".join(command_list)
 
-    #Add command to executed_list
-    executer.execute_command(vanilla_command)
+    #attempt to execute command and get pid
+    pid = executer.execute_command(vanilla_command)
+    if pid:
+        executed_processes[pid] = {"module":class_name, "command":vanilla_command, "status":"executed"}
 
 #show list of executed commands
-def show_running():
+def show_executed():
+    #Get status of processes
+    for pid in executed_processes.keys():
+        executed_processes[pid]["status"] = executer.process_check(pid)
 
+    #Create the table of executed processes
+    process_table = [["Index", "PID", "Module", "Command","Status", "Time Executed"]]
+    index = 0
+    for pid, pid_info in executed_processes.items():
+        index += 1
+        process_table.append([index, pid, pid_info["module"], pid_info["command"], pid_info["status"]])
+
+    print("\n--Executed commands--\n")
+    print(tabulate(process_table, headers="firstrow", tablefmt="pretty"))
     return 0
 
 #check status of a running command or all running commands
@@ -149,10 +164,10 @@ command_handlers = {
         "description": "Execute the current command built from the module",
         "valid_inputs": ["run"]
     },
-    "running": {
-    "function": show_running,
+    "executed": {
+    "function": show_executed,
     "description": "Show running commands",
-    "valid_inputs": ["running"]
+    "valid_inputs": ["executed"]
     },
     "status": {
         "function": show_status,

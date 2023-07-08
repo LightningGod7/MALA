@@ -1,19 +1,31 @@
-import subprocess
+import subprocess as sp
+import psutil
+import os
 
-vanilla_command = ls
+default_output_file = os.path.join(".", "output", "output.out")
+vanilla_command = f'/usr/bin/wfuzz -z range,000-999 -u http://guohuaqun.mooo.com/FUZZ/login.php -b ict2206:jaimatadi > {default_output_file}'
+def execute_command(vanilla_command, output_file=default_output_file):
+    command = vanilla_command + " > " + output_file
+    # print("executing `" + command + "`")
+    process = sp.Popen(vanilla_command, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
+    stdout, stderr = process.communicate()
+    output = stdout.decode()
+    error = stderr.decode()
+    return_code = process.returncode
+    return process.pid
 
-def execute_command(vanilla_command, output_file):
-    command = "nohup " + vanilla_command + " > " + output_file + "&"
-    print("executing `" + command + "`")
+def process_check(pid):
     try:
-        subprocess.run(vanilla_command, shell=True)
-    except:
-        print()
-        return None
+        process = psutil.Process(pid)
+        if process.poll() is None:
+            return "Running"
+        elif process.returncode == 0:
+            return "Completed"
+        else:
+            return f"Exited with error: {process.returncode}"
+    except psutil.NoSuchProcess:
+        return "Completed"
 
-# def check_status(command_to_check):
-
-#     output_file = command_to_check
-
-#     command = "tail -f " + output_file
-#     # subprocess.run(command, shell=True)
+def get_status(index=default_output_file):
+    os.run(f"tail -f {index}" )
+execute_command(vanilla_command)
