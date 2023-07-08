@@ -7,6 +7,7 @@ import importlib.util #Dynamically load modules
 VARIABLES_CONFIG_PATH = os.path.join(".", "configs", "variables.json")
 MODULES_FOLDER = os.path.join(".", "modules")
 TOOLS_CONFIG_PATH = os.path.join(".", "configs", "toolpath.json")
+MODULES_CONFIG_PATH = os.path.join(".", "configs", "modules.json")
 
 #Load all modules into dictionary
 def module_load(modules_folder):
@@ -69,5 +70,5 @@ if __name__ == "__main__":
     variables = initialize_configs(VARIABLES_CONFIG_PATH)
     tool_paths = initialize_configs(TOOLS_CONFIG_PATH)
     startup_message()
-    controller.initialize(modules, variables, tool_paths)
+    controller.initialize(modules, variables, tool_paths, MODULES_CONFIG_PATH)
     controller.main()

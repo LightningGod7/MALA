@@ -4,6 +4,7 @@ from tabulate import tabulate
 from datetime import datetime
 import os
 import executer
+import json
 
 MALA_OUTPUT_PATH = os.path.join(".", "output", "")
 
@@ -11,9 +12,11 @@ MALA_OUTPUT_PATH = os.path.join(".", "output", "")
 PROMPT = "MALA"
 MODULE = ""
 
-def initialize(loaded_modules, universal_variables, tool_paths):
-    global modules, variables, tools, executed_processes
+def initialize(loaded_modules, universal_variables, tool_paths, modules_config):
+    global modules, variables, tools, executed_processes, modules_config_path, module_mapping
     modules = loaded_modules
+    module_mapping = {os.path.splitext(os.path.basename(path))[0]: path for path in modules}
+    modules_config_path = modules_config
     variables = universal_variables
     tools = tool_paths
     executed_processes = {}
@@ -71,9 +74,31 @@ def show_variables():
     print(tabulate(module_table, headers="firstrow", tablefmt="pretty"))
 
 #show available modules
-def show_modules():
-    for loaded_modules in modules:
-        print(loaded_modules)
+def show_modules(arg=[""]):
+    module_names = list(module_mapping.keys())
+    module_names.remove("base_module")
+    if arg[0] == "add":
+        # Load the JSON file
+        with open(modules_config_path) as file:
+            data = json.load(file)
+
+        # Compare items in loaded_modules with keys in the JSON file
+        for module in module_names:
+            if module not in data:
+                # Add new entry to the JSON file
+                data[module] = {
+                    "Description": "",
+                    "Tagging": [""]
+                }
+
+        # Write the updated JSON data back to the file
+        with open(modules_config_path, 'w') as file:
+            json.dump(data, file, indent=4)
+        print("\nModules added to config")
+        return
+    print("\n")
+    for module_name in module_names:
+        print(module_name)
 
 #select module to use
 def use_module(arg):
@@ -83,10 +108,12 @@ def use_module(arg):
         print ("This option requires arguments")
         return
     
-    module_path = arg[0]
+    selected_module = arg[0]
     variables["module_variables"].clear()
     try:
-        module = importlib.import_module(module_path)
+        module_import_path = module_mapping[selected_module].replace('\\', '.').replace('/', '.').replace(".py","").lstrip('.')
+        print(module_import_path)
+        module = importlib.import_module(module_import_path)
         module_class = inspect.getmembers(module, inspect.isclass)
         if module_class:
             class_name, class_obj = module_class[-1]
@@ -94,7 +121,7 @@ def use_module(arg):
             MODULE = "(" + class_name + ")"
             return new_module
     except ModuleNotFoundError:
-        print(f"\nModule '{module_path}' not found.")
+        print(f"\nModule '{selected_module}' not found.")
 
 #execute the module
 def execute():

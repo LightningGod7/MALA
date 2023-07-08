@@ -1,0 +1,128 @@
+{
+    "base_module": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "sqlmap": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "xss": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "http_brute": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "nikto": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "ssl_subdomain": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "url_enumeration": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "waf_fingerprinting": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "webtechnology_id": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "drupal": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "joomla": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "tomcat": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "webdav": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "wordpress": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "nmap-builder": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "commandinjection": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "commonwebexploits": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "fileuploads": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "php": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "searchsploit": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "cewl": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    }
+}
