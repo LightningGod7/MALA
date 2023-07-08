@@ -1,22 +1,30 @@
-class url_enumeration:
+from modules.base_module import baseModule
+class url_enumeration(baseModule):
     def __init__(self, variables):
         ### SET module variables
         self.module_variables = variables["module_variables"]
-        self.module_variables["mode"] = {"Value": " ", "Description": "directory or range"}
-        self.module_variables["extensions"] = {"Value":"", "Description":"file extensions to fuzz (e.g. .php, .html, .txt)"}
-        self.module_variables["recursive"] = {"Value":0, "Description":"recursion in enumeration and depth. (-1 for infinite)"}
-        self.module_variables["username"] = {"Value": "", "Description":"auth mode will be enabled if both user and pass are set"}
-        self.module_variables["password"] = {"Value": "", "Description":"auth mode will be enabled if both user and pass are set"}
-        self.module_variables["cookie"] = {"Value": "", "Description":"cookie session authentication. Takes precedence over credentials auth"}
-        self.module_variables["range"] = {"Value": "", "Description":"range of numbers to fuzz `xxx-yyy`. For when range mode is set"}
+
+        #Required
+        self.module_variables["mode"] = {"Value": " ", "Description": "directory or range", "Required":True}
+        self.valid_modes = {"directory":["d","dir","directory"],"range": ["r", "ran", "range"],"subdomain":["s", "sub", "subdomain"]}
+
+        #Required only for range_fuzz
+        self.module_variables["range"] = {"Value": "", "Description":"range of numbers to fuzz `xxx-yyy`. For when range mode is set", "Required":False}
+        self.mode_required_dict = {"directory":[],"range": ["range"],"subdomain":[]}
+
+        #Optional
+        self.module_variables["extensions"] = {"Value":"", "Description":"file extensions to fuzz (e.g. .php, .html, .txt)", "Required":False}
+        self.module_variables["recursive"] = {"Value":0, "Description":"recursion in enumeration and depth. (-1 for infinite)", "Required":False}
+        self.module_variables["username"] = {"Value": "", "Description":"auth mode will be enabled if both user and pass are set", "Required":False}
+        self.module_variables["password"] = {"Value": "", "Description":"auth mode will be enabled if both user and pass are set", "Required":False}
+        self.module_variables["cookie"] = {"Value": "", "Description":"cookie session authentication. Takes precedence over credentials auth", "Required":False}
+    
+        super().__init__(variables,self.valid_modes, self.mode_required_dict)
 
     def initialize_before_run(self,tools,variables):
-        ### GET common variables
-        self.variables = variables
-        common_vars = variables.get("common_variables")
-        self.target = common_vars["RHOST"]["Value"]
-        self.port = common_vars["RPORT"]["Value"]
-        self.wordlist = common_vars["wordlist"]["Value"]
+        ### super constructor
+        super().initialize_before_run(variables)
+
         self.gobuster = tools.get("gobuster")
         self.wfuzz = tools.get("wfuzz")
 
@@ -30,18 +38,18 @@ class url_enumeration:
         if not self.target or not self.wordlist:
             print("Not all compulsory options are set. Check with `options` command")
             return       
+        
         #Checking which mode to execute
         method = self.module_variables["mode"]["Value"]
-        directory_match = ["d","dir","directory"]
-        range_match = ["r", "ran", "range"]
-        if method in directory_match:
+        if method in self.valid_modes["directory"]:
             return self.directory_fuzz()
-        elif method in range_match:
+        elif method in self.valid_modes["range"]:
             return self.range_fuzz()
+        elif method in self.valid_modes["subdomain"]:
+            return self.subdomain_fuzz()
         else:
-            print("Unknown mode. Please set mode to `directory` or `range`")
+            print("Code should not reach here at all")
             return
-
 
     #Module functionalities
     def directory_fuzz(self):
@@ -74,7 +82,7 @@ class url_enumeration:
         wordlist_arg = "-w " + self.wordlist
         command_list = [prefix, target_arg, wordlist_arg]
         
-        ##Add cases for recursive, authentication, extensions, diff types of output etc
+        ##Add cases for recursive, diff types of output etc
         return command_list
 
     def check_additional_options(self, ext_flag, cookie_flag, cred_flag):
