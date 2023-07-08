@@ -1,8 +1,11 @@
 import importlib
 import inspect 
 from tabulate import tabulate
-
+from datetime import datetime
+import os
 import executer
+
+MALA_OUTPUT_PATH = os.path.join(".", "output", "")
 
 #DEFINE
 PROMPT = "MALA"
@@ -75,6 +78,11 @@ def show_modules():
 #select module to use
 def use_module(arg):
     global variables, MODULE, new_module, class_name
+
+    if not len(arg):
+        print ("This option requires arguments")
+        return
+    
     module_path = arg[0]
     variables["module_variables"].clear()
     try:
@@ -90,6 +98,7 @@ def use_module(arg):
 
 #execute the module
 def execute():
+    global MALA_OUTPUT_FILE
     new_module.initialize_before_run(tools,variables)
     command_list = new_module.get_command_list()
     if not command_list:
@@ -99,10 +108,13 @@ def execute():
     #Create the actual command from a list
     vanilla_command = " ".join(command_list)
 
+    curr_time = datetime.now()
+    MALA_OUTPUT_FILE = MALA_OUTPUT_PATH + class_name + "_" + str(curr_time.strftime("%Y%m%d_%H%M%S_%f"))
     #attempt to execute command and get pid
-    pid = executer.execute_command(vanilla_command)
+
+    pid = executer.execute_command(vanilla_command,MALA_OUTPUT_FILE)
     if pid:
-        executed_processes[pid] = {"module":class_name, "command":vanilla_command, "status":"executed"}
+        executed_processes[pid] = {"module":class_name, "command":vanilla_command, "status":None, "time":curr_time, "output":MALA_OUTPUT_FILE}
 
 #show list of executed commands
 def show_executed():
@@ -111,11 +123,11 @@ def show_executed():
         executed_processes[pid]["status"] = executer.process_check(pid)
 
     #Create the table of executed processes
-    process_table = [["Index", "PID", "Module", "Command","Status", "Time Executed"]]
+    process_table = [["Index","PID","Module","Command","Status","Time","Output"]]
     index = 0
     for pid, pid_info in executed_processes.items():
         index += 1
-        process_table.append([index, pid, pid_info["module"], pid_info["command"], pid_info["status"]])
+        process_table.append([index, pid, pid_info["module"], pid_info["command"], pid_info["status"], pid_info["time"].strftime("%Y%m%d %H:%M"), pid_info["output"]])
 
     print("\n--Executed commands--\n")
     print(tabulate(process_table, headers="firstrow", tablefmt="pretty"))
@@ -123,6 +135,19 @@ def show_executed():
 
 #check status of a running command or all running commands
 def show_status(arg):
+    if not len(arg):
+        print ("This option requires arguments")
+        return
+    
+    index = abs(int(arg[0]))
+    if index > len(executed_processes):
+        print("Invalid index")
+        return
+    #Search executed_process dict for the index
+    pid = list(executed_processes.keys())[index-1]
+    #pass file name to get status
+    executer.get_status(executed_processes[pid]["output"])
+
     return 0
 
 #handle for when unknown command is given
@@ -172,7 +197,7 @@ command_handlers = {
     "status": {
         "function": show_status,
         "description": "show status of commands",
-        "valid_inputs": ["status"]
+        "valid_inputs": ["status","show"]
     }
 }
 

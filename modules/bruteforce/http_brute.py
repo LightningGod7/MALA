@@ -9,8 +9,8 @@ class http_bruteforce(baseModule):
         ##ALWAYS REQUIRED
         self.module_variables["username"] = {"Value": "admin", "Description": "single username (takes precedence over userlist)", "Required": True}
         self.module_variables["userlist"] = {"Value":"", "Description":"username list", "Required":True}
-        self.module_variables["password"] = {"Value":"password", "Description":"single password (takes precedence over passlist)", "Required":True}
-        self.module_variables["passlist"] = {"Value": "", "Description":"password list", "Required":False}
+        self.module_variables["password"] = {"Value":"", "Description":"single password (takes precedence over passlist)", "Required":True}
+        self.module_variables["passlist"] = {"Value": ".\wordlists\wls", "Description":"password list", "Required":False}
         
         self.module_variables["mode"] = {"Value": "basic", "Description":"basic auth | http get | http post", "Required":True}
 
@@ -75,7 +75,8 @@ class http_bruteforce(baseModule):
         mode_arg = "http-get"
         command_list = [prefix, user_arg, pass_arg, target_arg, mode_arg]
         command_list.append(self.module_variables["urlpath"]["Value"]) if self.module_variables["urlpath"]["Value"] else None
-        command_list += self.check_additional_options()
+        additional_options = self.check_additional_options()
+        command_list = command_list[:2] + additional_options + command_list[2:]
         return command_list
 
     def get_brute(self,prefix,user_arg,pass_arg):
@@ -84,15 +85,18 @@ class http_bruteforce(baseModule):
         mode_arg = "http-get-form"
         get_arg = self.create_mode_arg_input()
         command_list = [prefix, user_arg, pass_arg, target_arg, mode_arg, get_arg]
-        command_list += self.check_additional_options()
+        additional_options = self.check_additional_options()
+        command_list = command_list[:2] + additional_options + command_list[2:]
         return command_list
     
     def post_brute(self,prefix,user_arg,pass_arg):
         target_arg = self.target
         mode_arg = "http-post-form"
         post_arg = self.create_mode_arg_input()
+        
         command_list = [prefix, user_arg, pass_arg, target_arg, mode_arg, post_arg]
-        command_list += self.check_additional_options()
+        additional_options = self.check_additional_options()
+        command_list = command_list[:2] + additional_options + command_list[2:]
         return command_list
         
     def create_mode_arg_input(self):

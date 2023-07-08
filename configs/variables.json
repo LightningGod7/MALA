@@ -2,7 +2,7 @@
     "common_variables":
     {
         "LHOST": {"Value": "0.0.0.0", "Description": "Your machine", "Required" : false},
-        "RHOST": {"Value": "target.com", "Description": "Target", "Required" : true},
+        "RHOST": {"Value": "guohuaqun.mooo.com", "Description": "Target", "Required" : true},
         "RPORT": {"Value": 80, "Description": "Target Port", "Required" : false},
         "wordlist": {"Value": "/usr/share/wordlists/rockyou.txt", "Description": "Wordlist to use", "Required" : false}
     },
