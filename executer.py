@@ -3,11 +3,12 @@ import psutil
 import os
 
 default_output_file = os.path.join(".", "output", "output.out")
-vanilla_command = f'/usr/bin/wfuzz -z range,000-999 -u http://guohuaqun.mooo.com/FUZZ/login.php -b ict2206:jaimatadi > {default_output_file}'
+default_error_file = os.path.join(".", "output", "error.out")
+# vanilla_command = f'/usr/bin/wfuzz -z range,000-999 -u http://guohuaqun.mooo.com/FUZZ/login.php -b ict2206:jaimatadi > {default_output_file}'
 def execute_command(vanilla_command, output_file=default_output_file):
     command = vanilla_command + " > " + output_file
-    # print("executing `" + command + "`")
-    process = sp.Popen(vanilla_command, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
+    print("executing `" + command + "`")
+    process = sp.Popen(command, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
     stdout, stderr = process.communicate()
     output = stdout.decode()
     error = stderr.decode()
@@ -28,4 +29,3 @@ def process_check(pid):
 
 def get_status(index=default_output_file):
     os.run(f"tail -f {index}" )
-execute_command(vanilla_command)

@@ -19,7 +19,7 @@ class http_bruteforce(baseModule):
 
         ##Required only for http-get and http-post
         self.module_variables["error-pattern"] = {"Value": "invalid", "Description":"error pattern to match on failed attempt", "Required":False}
-        self.module_variables["urlpath"] = {"Value": "/admin/login.php", "Description":"url path to the login form on the target e.g. /", "Required":False}
+        self.module_variables["urlpath"] = {"Value": "/066/login.php", "Description":"url path to the login form on the target e.g. /", "Required":False}
         self.module_variables["userfield"] = {"Value": "username", "Description":"username html field", "Required":True}       
         self.module_variables["passfield"] = {"Value": "pass", "Description":"password html field", "Required":False}
 
@@ -28,6 +28,7 @@ class http_bruteforce(baseModule):
         ##Optional
         self.module_variables["cookie"] = {"Value": "", "Description":"cookie for session authentication", "Required":False}
         self.module_variables["threads"] = {"Value": "", "Description":"number of threads to use", "Required":False}
+        self.module_variables["verbose"] = {"Value": "", "Description":"verbose output", "Required":False}
 
         super().__init__(variables, self.always_required, self.valid_modes, self.mode_required_dict)
 
@@ -48,7 +49,6 @@ class http_bruteforce(baseModule):
             print("You need to set either static credentials or wordlists to use this mode. Run command `variables` to see required options\n")
             return
 
-##Handle which credential option to use##
 
         #Checking which mode to execute
         prefix = self.hydra
@@ -72,8 +72,8 @@ class http_bruteforce(baseModule):
     
     def basic_brute(self,prefix,user_arg,pass_arg):
         target_arg = self.target
-        verbose_arg = "-V"
-        command_list = [prefix, user_arg, pass_arg, verbose_arg, target_arg]
+        mode_arg = "http-get"
+        command_list = [prefix, user_arg, pass_arg, target_arg, mode_arg]
         command_list.append(self.module_variables["urlpath"]["Value"]) if self.module_variables["urlpath"]["Value"] else None
         command_list += self.check_additional_options()
         return command_list
@@ -81,19 +81,17 @@ class http_bruteforce(baseModule):
     def get_brute(self,prefix,user_arg,pass_arg):
         #Set some options to `required`
         target_arg = self.target
-        verbose_arg = "-V"
         mode_arg = "http-get-form"
         get_arg = self.create_mode_arg_input()
-        command_list = [prefix, user_arg, pass_arg, verbose_arg, target_arg, mode_arg, get_arg]
+        command_list = [prefix, user_arg, pass_arg, target_arg, mode_arg, get_arg]
         command_list += self.check_additional_options()
         return command_list
     
     def post_brute(self,prefix,user_arg,pass_arg):
         target_arg = self.target
-        verbose_arg = "-V"
         mode_arg = "http-post-form"
         post_arg = self.create_mode_arg_input()
-        command_list = [prefix, user_arg, pass_arg, verbose_arg, target_arg, mode_arg, post_arg]
+        command_list = [prefix, user_arg, pass_arg, target_arg, mode_arg, post_arg]
         command_list += self.check_additional_options()
         return command_list
         
@@ -118,5 +116,6 @@ class http_bruteforce(baseModule):
         threads = self.module_variables["threads"]["Value"]
         port_arg = "-s " + str(port) if port else None
         threads_arg = "-t " + threads if threads else None
-        additional_options = [port_arg,threads_arg]
+        verbose_arg = "-V"
+        additional_options = [port_arg,threads_arg,verbose_arg]
         return [option for option in additional_options if option]
