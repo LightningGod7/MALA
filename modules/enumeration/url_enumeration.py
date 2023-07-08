@@ -17,6 +17,7 @@ class url_enumeration(baseModule):
         #Optional
         self.module_variables["extensions"] = {"Value":"", "Description":"file extensions to fuzz (e.g. .php, .html, .txt)", "Required":False}
         self.module_variables["recursive"] = {"Value":"", "Description":"recursion in enumeration and depth. (`i` for infinite)", "Required":False}
+        self.module_variables["filter"] = {"Value":"", "Description":"filter by `line, word, size, status:[metric]` split each filter with ',' e.g. status:404,line:7", "Required":False}
         self.module_variables["username"] = {"Value": "", "Description":"auth mode will be enabled if both user and pass are set", "Required":False}
         self.module_variables["password"] = {"Value": "", "Description":"auth mode will be enabled if both user and pass are set", "Required":False}
         self.module_variables["cookie"] = {"Value": "", "Description":"cookie session authentication. Takes precedence over credentials auth", "Required":False}
@@ -71,11 +72,13 @@ class url_enumeration(baseModule):
             return
         prefix = self.wfuzz
         range_arg = "-z range," + fuzz_range
-        target_arg = "-u " + self.url
+        target_arg = "-u " + self.url + "/FUZZ"
         command_list = [prefix, range_arg, target_arg]
 
         ##Add cases for recursive, authentication, extensions, diff types of output etc
-        command_list += self.check_additional_options("-e", "-b","r")
+        command_list += self.check_additional_options("-e", "-b","w")
+
+        print(command_list)
         return command_list
     
     def subdomain_fuzz(self):
@@ -87,11 +90,12 @@ class url_enumeration(baseModule):
         ##Add cases for recursive, diff types of output etc
         return command_list
 
-    def check_additional_options(self, ext_flag, cookie_flag, cred_flag):
+    def check_additional_options(self, ext_flag, cookie_flag, tool_flag):
         module_options = self.module_variables
         
         #Define all options
         recursive = module_options["recursive"]["Value"]
+        filter_input = module_options["filter"]["Value"].split(",")
         username = module_options["username"]["Value"]
         password = module_options["password"]["Value"]
         cookie = module_options["cookie"]["Value"]
@@ -118,7 +122,7 @@ class url_enumeration(baseModule):
 
         #Check Auth flag
         if username and password:
-            if cred_flag == "g":
+            if tool_flag == "g":
                 auth_arg = " -U " + username + " -P " + password
             else:
                 auth_arg = "-b " + username + ":" + password
@@ -126,9 +130,34 @@ class url_enumeration(baseModule):
         #Check cookie flag
         if cookie:
             auth_arg = cookie_flag + " " + cookie
+
+        #Check filter flag
+        if tool_flag != "w":
+            additional_options = [extension_arg,recursive_arg,auth_arg]
+            return [option for option in additional_options if option]
         
-        additional_options = [extension_arg,recursive_arg,auth_arg]
+        filter_arg = ["--hs 404"]
+        for filter in filter_input:
+            filter_type = filter.split(":")[0]
+            filter_metric = filter.split(":")[1]
+            if filter_type.lower() == "line":
+                new_filter = "--hl " + filter_metric
+            elif filter_type.lower() == "word":
+                new_filter = "--hw " + filter_metric
+            elif filter_type.lower() == "size":
+                new_filter = "--hs " + filter_metric
+            elif filter_type.lower() == "status":
+                new_filter = "--hc " + filter_metric
+            filter_arg.append(new_filter)
+
+
+        additional_options = filter_arg + [extension_arg,recursive_arg,auth_arg]
+        print(additional_options)
         return [option for option in additional_options if option]
+
+                
+        
+
 
 
    
