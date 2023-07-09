@@ -102,10 +102,11 @@ def show_modules(arg=[""]):
     table.field_names = ["Module Name", "Module Description", "Module Tagging"]
     table.max_table_width=120
     for module , module_info in module_menu_data.items():
-        description = module_info["Description"]
-        tagging = module_info["Tagging"][0] if module_info["Tagging"] else "None"
+        if module in module_names:
+            description = module_info["Description"]
+            tagging = module_info["Tagging"][0] if module_info["Tagging"] else "None"
 
-        table.add_row([module, description, tagging])
+            table.add_row([module, description, tagging])
 
     print(table)
 

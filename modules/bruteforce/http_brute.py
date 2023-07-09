@@ -38,7 +38,6 @@ class http_bruteforce(baseModule):
         self.hydra = tools.get("hydra")
 
     def get_command_list(self):
-        
         #Check that required options are set
         self.username = self.module_variables["username"]["Value"]
         self.userlist = self.module_variables["userlist"]["Value"]
