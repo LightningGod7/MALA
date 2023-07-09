@@ -18,7 +18,7 @@ class vulnScan(baseModule):
     #Override the abstract class to set tool
     def initialize_before_run(self, tools, variables):
         super().initialize_before_run(variables)
-        self.hydra = tools.get("nmap")
+        self.nmap = tools.get("nmap")
 
     def get_command_list(self):
         #Check that required options are set
@@ -30,50 +30,52 @@ class vulnScan(baseModule):
         pass_arg = "-p " + self.password if self.password else "-P " + self.passlist
         method = self.module_variables["mode"]["Value"]
         if method:
-            script_arg = method
+            return self.command_builder(method)
         else:
             print("SHOW ALL SCRIPT OPTIONS HERE")
             return
 
-    nmap_variables = {"script": [], "args":""}
+    def command_builder(self, script, script_args=None):
+        prefix = self.nmap
+        port_arg = "-p " + self.port if self.port else "80"
+        script_arg = "--script " + script
+        target_arg = self.target
 
-    scripts_noargs = {
-        "backup-config-enum": "http-config-backup",
-        "drupal-users-enum": "http-drupal-enum-users",
-        "drupal-enum": "http-drupal-enum",
-        "enum": "http-enum",
-        "waf-detect": "http-waf-detect",
-        "webdav-scan": "http-webdav-scan",
-        "wordpress-users": "http-wordpress-users"
-    }
+        command_list = [prefix, port_arg, script_arg, target_arg]
 
-    scripts_withargs = {
-        "uploads-exploit": "http-fileupload-exploiter",
-        "form-brute": "http-form-brute",
-        "form-fuzz": "http-form-fuzzer",
-        "waf-fingerprint": "http-waf-fingerprint",
-        "joomla-brute": "http-joomla-brute",
-        "phpmyadmin-dir-traversal": "http-phpmyadmin-dir-traversal",
-        "wordpress-brute": "http-wordpress-brute",
-        "wordpress-enum": "http-wordpress-enum"
-    }
-
-    script_options = ""
-
-    def build_nmap_command(target, port, script_options, script_args=None):
-        command = ['nmap', '-p', port, '-sV', '--script', script_options, target]
         
-        if script_args:
-            command.extend(['--script-args', script_args])
-        
-        return command
+        return command_list
 
-    def nmap_script_option(option):
-        if not nmap_variables["args"]:
-            if any(script in scripts_withargs for script in option):
-                print("Script selected requires arguments but none were given.")
-                return
-        script_options = ','.join(option)
-        return script_options
+    # def nmap_script_option(option):
+    #     if not nmap_variables["args"]:
+    #         if any(script in scripts_withargs for script in option):
+    #             print("Script selected requires arguments but none were given.")
+    #             return
+    #     script_options = ','.join(option)
+    #     return script_options
 
 
+    # nmap_variables = {"script": [], "args":""}
+
+    # scripts_noargs = {
+    #     "backup-config-enum": "http-config-backup",
+    #     "drupal-users-enum": "http-drupal-enum-users",
+    #     "drupal-enum": "http-drupal-enum",
+    #     "enum": "http-enum",
+    #     "waf-detect": "http-waf-detect",
+    #     "webdav-scan": "http-webdav-scan",
+    #     "wordpress-users": "http-wordpress-users"
+    # }
+
+    # scripts_withargs = {
+    #     "uploads-exploit": "http-fileupload-exploiter",
+    #     "form-brute": "http-form-brute",
+    #     "form-fuzz": "http-form-fuzzer",
+    #     "waf-fingerprint": "http-waf-fingerprint",
+    #     "joomla-brute": "http-joomla-brute",
+    #     "phpmyadmin-dir-traversal": "http-phpmyadmin-dir-traversal",
+    #     "wordpress-brute": "http-wordpress-brute",
+    #     "wordpress-enum": "http-wordpress-enum"
+    # }
+
+    # script_options = ""
