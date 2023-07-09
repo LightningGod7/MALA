@@ -7,13 +7,11 @@ class vulnScan(baseModule):
 
         ##ALWAYS REQUIRED
         self.module_variables["mode"] = {"Value": "admin", "Description": "nmap script to use", "Required": True}
-
+        self.always_required = ["mode"]
         ##Optional
-        self.module_variables["cookie"] = {"Value": "", "Description":"cookie for session authentication", "Required":False}
-        self.module_variables["threads"] = {"Value": "", "Description":"number of threads to use", "Required":False}
-        self.module_variables["verbose"] = {"Value": "", "Description":"verbose output", "Required":False}
+        self.module_variables["mode args"] = {"Value": "", "Description":"arguments for the provided script", "Required":False}
 
-        super().__init__(variables, self.always_required, self.valid_modes, self.mode_required_dict)
+        super().__init__(variables, self.always_required)
 
     #Override the abstract class to set tool
     def initialize_before_run(self, tools, variables):
@@ -25,25 +23,26 @@ class vulnScan(baseModule):
         if not self.target:
             print("Target is not set")
             return  
-     
-        user_arg = "-l " + self.username if self.username else "-L " + self.userlist
-        pass_arg = "-p " + self.password if self.password else "-P " + self.passlist
-        method = self.module_variables["mode"]["Value"]
-        if method:
-            return self.command_builder(method)
+    
+        mode = self.module_variables["mode"]["Value"]
+        mode_arguments = self.module_variables["mode args"]["Value"]
+        if mode:
+            return self.command_builder(mode, mode_arguments)
         else:
             print("SHOW ALL SCRIPT OPTIONS HERE")
             return
 
-    def command_builder(self, script, script_args=None):
+    def command_builder(self, mode, mode_arguments=None):
         prefix = self.nmap
-        port_arg = "-p " + self.port if self.port else "80"
-        script_arg = "--script " + script
+        port_arg = "-p " + str(self.port) if self.port else "80"
+        script_arg = "--script " + mode
         target_arg = self.target
 
         command_list = [prefix, port_arg, script_arg, target_arg]
 
-        
+        if mode_arguments:
+            command_list += mode_arguments
+
         return command_list
 
     # def nmap_script_option(option):

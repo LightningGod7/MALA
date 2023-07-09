@@ -24,6 +24,10 @@ class baseModule:
         
     ###Initializing mode options
     def initialize_selected_mode(self, mode_input):
+        ### If no mode checking then just continue
+        if not len(self.mode_dict):
+            return mode_input
+        
         ### Check mode
         for mode, mode_pattern in self.mode_dict.items():
             if mode_input in mode_pattern:
