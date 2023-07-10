@@ -130,5 +130,11 @@
         "Tagging": [
             ""
         ]
+    },
+    "nmap_script": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
     }
 }

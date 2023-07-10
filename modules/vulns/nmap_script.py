@@ -34,7 +34,7 @@ class vulnScan(baseModule):
 
     def command_builder(self, mode, mode_arguments=None):
         prefix = self.nmap
-        port_arg = "-p " + str(self.port) if self.port else "80"
+        port_arg = ("-p " + str(self.port)) if self.port else "80"
         script_arg = "--script " + mode
         target_arg = self.target
 

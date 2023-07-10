@@ -1,4 +1,5 @@
 from modules.base_module import baseModule
+
 class url_enumeration(baseModule):
     def __init__(self, variables):
         ### SET module variables
@@ -62,7 +63,7 @@ class url_enumeration(baseModule):
         command_list = [prefix, target_arg, wordlist_arg]
         
         ##Add cases for recursive, authentication, extensions, diff types of output etc
-        command_list += self.check_additional_options("-x", "-c","g")
+        command_list += self.get_additional_options("-x", "-c","g")
         return command_list
     
     def range_fuzz(self):
@@ -76,7 +77,7 @@ class url_enumeration(baseModule):
         command_list = [prefix, range_arg, target_arg]
 
         ##Add cases for recursive, authentication, extensions, diff types of output etc
-        command_list += self.check_additional_options("-e", "-b","w")
+        command_list += self.get_additional_options("-e", "-b","w")
 
         print(command_list)
         return command_list
@@ -90,7 +91,7 @@ class url_enumeration(baseModule):
         ##Add cases for recursive, diff types of output etc
         return command_list
 
-    def check_additional_options(self, ext_flag, cookie_flag, tool_flag):
+    def get_additional_options(self, ext_flag, cookie_flag, tool_flag):
         module_options = self.module_variables
         
         #Define all options

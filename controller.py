@@ -4,8 +4,9 @@ from tabulate import tabulate
 from prettytable import PrettyTable
 from datetime import datetime
 import os
-import executer
 import json
+
+import executer
 
 MALA_OUTPUT_PATH = os.path.join(".", "output", "")
 
@@ -141,6 +142,8 @@ def execute():
     if not command_list:
         print("\nFailed to run. No module selected or compulsory options were not set.")
         return
+    elif command_list == "Handled":
+        return
     
     #Create the actual command from a list
     vanilla_command = " ".join(command_list)
@@ -187,6 +190,21 @@ def show_status(arg):
 
     return 0
 
+#kill process
+def kill_process(arg):
+    if arg[0] == "all":
+        kill_all_processes()
+        return
+
+    index = abs(int(arg[0]))
+    if index > len(executed_processes):
+        print("Invalid index")
+        return
+    
+    kill_pid = list(executed_processes.keys())[index-1]
+    executer.kill_process(kill_pid)
+    return 
+
 #handle for when unknown command is given
 def command_not_found(available_commands):
     print("No such command, refer to available commands: \n")
@@ -227,27 +245,53 @@ command_handlers = {
         "valid_inputs": ["run"]
     },
     "executed": {
-    "function": show_executed,
-    "description": "Show running commands",
-    "valid_inputs": ["executed"]
+        "function": show_executed,
+        "description": "Show running commands",
+        "valid_inputs": ["executed"]
     },
     "status": {
         "function": show_status,
         "description": "show status of commands",
         "valid_inputs": ["status","show"]
-    }
+    },
+    "kill": {
+        "function": show_status,
+        "description": "`kill <process-index>` or `kill all`",
+        "valid_inputs": ["kill","stop"]
+    },
+    "exit": {
+        "function": None,
+        "description": "exit program",
+        "valid_inputs": ["exit","quit"]
+    },    
+
 }
+
+def get_process_status(check_pid):
+    executed_processes[check_pid]["status"] = executer.process_check(check_pid)
+    return executed_processes[check_pid]["status"]
+
+def kill_all_processes():
+    #Get status of processes
+    for pid, pid_info in executed_processes.items():
+        if pid_info["status"] != "Completed" & get_process_status(pid) == "Running":
+            #Kill process if its still running
+            executer.kill_process(pid)
+            #Update executed processes info
+            pid_info["status"] = executer.get_status(pid)
+
 
 # Main
 def main():
     while True:
         try:
             user_input = input("\n" + PROMPT + MODULE + " > ").strip()
-            if user_input.lower() == "exit":
-                break
             command = user_input.split()[0].lower()
             args = user_input.split()[1:]
-            matched_command = [command_key for command_key, command_info in command_handlers.items() if command in command_info["valid_inputs"]]        
+            matched_command = [command_key for command_key, command_info in command_handlers.items() if command in command_info["valid_inputs"]]  
+            if matched_command[0] == "exit":
+                kill_all_processes()
+                break
             if matched_command:
                 command_function = command_handlers[matched_command[0]].get("function")
                 command_function(args) if len(args) != 0 else command_function()
@@ -259,6 +303,10 @@ def main():
             
         except KeyboardInterrupt:
             print("\nCtrl+C pressed. Exiting...")
+            kill_all_processes()
+            
             break
 
+        except:
+            continue
 

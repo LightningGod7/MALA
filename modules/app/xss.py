@@ -12,6 +12,7 @@ class xss:
         self.url = "http://" + self.target
         if self.port:
             self.url += ":" + str(self.port)
+        self.curl = tools.get("curl")
 
     def test(self):
         print("Imported this module")

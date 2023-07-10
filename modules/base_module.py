@@ -43,13 +43,12 @@ class baseModule:
             option_values["Required"] = option in always_required_set
 
         #Set mode required options
-        for options in self.mode_required_dict[current_mode]:
-            self.module_variables[options]["Required"] = True
-        return
-
-    ###Initializing for command execution
-    def get_command_list(self):
-        return
+        try:
+            for options in self.mode_required_dict[current_mode]:
+                self.module_variables[options]["Required"] = True
+            return
+        except KeyError:
+            return
     
     def initialize_before_run(self,variables):
         ### GET common variables
@@ -60,8 +59,6 @@ class baseModule:
         self.wordlist = common_vars["wordlist"]["Value"]
         # module_variables["output"]
     #MAIN SAUCE
-
-
 
     ###Various input value checks
     def is_valid_port(self, port):

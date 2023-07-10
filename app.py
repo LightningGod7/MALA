@@ -1,7 +1,6 @@
 import os
 import json
 import controller
-import importlib.util #Dynamically load modules
 
 ###DECLARE
 VARIABLES_CONFIG_PATH = os.path.join(".", "configs", "variables.json")

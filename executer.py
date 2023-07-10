@@ -32,3 +32,12 @@ def get_status(file_to_read):
         sp.run(['powershell', 'Get-Content', '-Path', file_to_read, '-Tail', '10'])
     except KeyboardInterrupt:
         return 
+    
+def kill_process(pid):
+    try:
+        process = psutil.Process(pid)
+        process.terminate()
+        return True
+    except psutil.NoSuchProcess:
+        print(f"No process found with PID {pid}")
+        return False

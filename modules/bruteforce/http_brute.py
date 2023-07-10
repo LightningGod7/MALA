@@ -74,7 +74,7 @@ class http_bruteforce(baseModule):
         mode_arg = "http-get"
         command_list = [prefix, user_arg, pass_arg, target_arg, mode_arg]
         command_list.append(self.module_variables["urlpath"]["Value"]) if self.module_variables["urlpath"]["Value"] else None
-        additional_options = self.check_additional_options()
+        additional_options = self.get_additional_options()
         command_list = command_list[:2] + additional_options + command_list[2:]
         return command_list
 
@@ -84,7 +84,7 @@ class http_bruteforce(baseModule):
         mode_arg = "http-get-form"
         get_arg = self.create_mode_arg_input()
         command_list = [prefix, user_arg, pass_arg, target_arg, mode_arg, get_arg]
-        additional_options = self.check_additional_options()
+        additional_options = self.get_additional_options()
         command_list = command_list[:2] + additional_options + command_list[2:]
         return command_list
     
@@ -94,7 +94,7 @@ class http_bruteforce(baseModule):
         post_arg = self.create_mode_arg_input()
         
         command_list = [prefix, user_arg, pass_arg, target_arg, mode_arg, post_arg]
-        additional_options = self.check_additional_options()
+        additional_options = self.get_additional_options()
         command_list = command_list[:2] + additional_options + command_list[2:]
         return command_list
         
@@ -113,7 +113,7 @@ class http_bruteforce(baseModule):
     
         return '"' + mode_arg_input + '"'
     
-    def check_additional_options(self):
+    def get_additional_options(self):
         #Define all options
         port = self.port
         threads = self.module_variables["threads"]["Value"]

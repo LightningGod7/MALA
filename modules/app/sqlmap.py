@@ -1,8 +1,8 @@
 class sql_enum:
     def __init__(self, variables):
         self.module_variables = variables["module_variables"]
-        self.module_variables["mode"] = {"Value": " ", "Description": "Request or URL"}
-        self.module_variables["request_file"] = {"Value":" ", "Description":"Path to the request file"}
+        self.module_variables["mode"] = {"Value": " ", "Description": "Request or URL", "Required": True}
+        self.module_variables["request_file"] = {"Value":" ", "Description":"Path to the request file", "Required": False}
 
     def initialize_before_run(self,tools,variables):
         ### GET common variables
@@ -14,7 +14,8 @@ class sql_enum:
         self.url = "http://" + self.target
         if self.port:
             self.url += ":" + str(self.port)
-
+        self.whatweb = tools.get("whatweb")
+        
     def test(self):
         print("Imported this module")
         print(self.target)
