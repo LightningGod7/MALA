@@ -14,6 +14,8 @@ MALA_OUTPUT_PATH = os.path.join(".", "output", "")
 PROMPT = "MALA"
 MODULE = ""
 
+executed_processes = {}
+
 def initialize(loaded_modules, universal_variables, tool_paths, modules_config):
     global modules, variables, tools, executed_processes, modules_config_path, module_mapping
     modules = loaded_modules
@@ -22,6 +24,13 @@ def initialize(loaded_modules, universal_variables, tool_paths, modules_config):
     variables = universal_variables
     tools = tool_paths
     executed_processes = {}
+
+#help command
+def help():
+    print("\nAvailable commands:")
+    for command, handler in command_handlers.items():
+        command_description = handler.get("description", "No description")
+        print(f"{command} - {command_description}")
 
 #set variable
 def set_variable(args):
@@ -195,7 +204,9 @@ def kill_process(arg):
     if arg[0] == "all":
         kill_all_processes()
         return
-
+    if not isinstance(arg[0],int):
+        print("Invalid argument, either `kill all` or `kill <process index>`")
+        return
     index = abs(int(arg[0]))
     if index > len(executed_processes):
         print("Invalid index")
@@ -205,15 +216,59 @@ def kill_process(arg):
     executer.kill_process(kill_pid)
     return 
 
+#remove process from executed process list
+def clear_process(arg = ""):
+    process_removal_list = []
+    if arg[0] == all:
+        user_confirmation = validate_user_confirm("This will clear all processes in executed list. Continue?")
+        if not user_confirmation.lower().startswith("y"):
+            print("Nothing was be cleared")
+            return
+        for pid, pid_info in executed_processes.items():
+            if not (pid_info["status"] == "Running" & executer.get_status(pid) == "Running"):
+                process_removal_list.append(pid)
+                continue
+            user_kill_confirm = validate_user_confirm(f"{pid_info['module']} started at {pid_info['time']} is still running. Kill before clearing?")
+            if not user_kill_confirm.lower().startswith("y"):
+                print("Skipping... This process will not be killed or cleared")
+                continue
+            kill_process(pid)
+            process_removal_list.append(pid)
+        for process in process_removal_list:
+            executed_processes.pop(process)
+
+    if not isinstance(arg[0],int):
+        print("Invalid argument, either `clear all` or `clear <process index>`")
+        return
+    index = abs(int(arg[0]))
+    if index > len(executed_processes):
+        print("Invalid index")
+        return
+    
+    clear_process = list(executed_processes.keys())[index-1]
+    if not (clear_process["status"] == "Running" & executer.get_status(clear_process) == "Running"):
+        executed_processes.pop(clear_process)
+    else:
+        user_kill_confirm = validate_user_confirm(f"{clear_process['module']} started at {clear_process['time']} is still running. Kill before clearing?")
+        if not user_kill_confirm.lower().startswith("y"):
+            print("Nothing was be cleared")
+            return
+        executer.kill_process(clear_process)
+        executed_processes.pop(clear_process)
+        print(f"process #{index} has been cleared")
+
 #handle for when unknown command is given
-def command_not_found(available_commands):
-    print("No such command, refer to available commands: \n")
-    for command, handler in available_commands.items():
-        command_description = handler.get("description", "No description")
-        print(f"{command} - {command_description}")
+def command_not_found(user_input):
+    print(f"\nUnknown command: {user_input}")
+    help()
 
 # Dictionary mapping commands to functions and their arguments
 command_handlers = {
+    "help": {
+        "function": help,
+        "description": "Prints this menu",
+        "valid_inputs": ["help"]
+    },
     "set": {
         "function": set_variable,
         "description": "Set a variable",
@@ -247,7 +302,7 @@ command_handlers = {
     "executed": {
         "function": show_executed,
         "description": "Show running commands",
-        "valid_inputs": ["executed"]
+        "valid_inputs": ["executed","show-run"]
     },
     "status": {
         "function": show_status,
@@ -255,10 +310,15 @@ command_handlers = {
         "valid_inputs": ["status","show"]
     },
     "kill": {
-        "function": show_status,
+        "function": kill_process,
         "description": "`kill <process-index>` or `kill all`",
         "valid_inputs": ["kill","stop"]
     },
+    "clear": {
+        "function": None,
+        "description": "clear completed processes from executed process list",
+        "valid_inputs": ["clear"]
+    },    
     "exit": {
         "function": None,
         "description": "exit program",
@@ -280,7 +340,18 @@ def kill_all_processes():
             #Update executed processes info
             pid_info["status"] = executer.get_status(pid)
 
+def validate_user_confirm(confirm_message):
+    valid_confirmational_inputs = ['y','yes','n','no']
+    user_confirmation_input = None
+    while True:
+        user_confirmation_input = input(confirm_message + " (Y/N):")
+        if not user_confirmation_input.lower() in valid_confirmational_inputs:
+            print("Invalid input")
+            continue
+        break
+    return user_confirmation_input        
 
+        
 # Main
 def main():
     while True:
@@ -288,18 +359,16 @@ def main():
             user_input = input("\n" + PROMPT + MODULE + " > ").strip()
             command = user_input.split()[0].lower()
             args = user_input.split()[1:]
-            matched_command = [command_key for command_key, command_info in command_handlers.items() if command in command_info["valid_inputs"]]  
+            matched_command = None
+            matched_command = [command_key for command_key, command_info in command_handlers.items() if command in command_info["valid_inputs"]] 
+            if not matched_command:
+                command_not_found(user_input)
             if matched_command[0] == "exit":
                 kill_all_processes()
                 break
             if matched_command:
                 command_function = command_handlers[matched_command[0]].get("function")
                 command_function(args) if len(args) != 0 else command_function()
-            else:
-                command_not_found(command_handlers)
-            
-            # # Call the command function
-            # command_function()
             
         except KeyboardInterrupt:
             print("\nCtrl+C pressed. Exiting...")
