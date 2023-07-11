@@ -54,8 +54,8 @@ class baseModule:
         ### GET common variables
         self.variables = variables
         common_vars = variables.get("common_variables")
-        self.target = common_vars["RHOST"]["Value"]
-        self.port = common_vars["RPORT"]["Value"]
+        self.target = common_vars["target"]["Value"]
+        self.port = common_vars["port"]["Value"]
         self.wordlist = common_vars["wordlist"]["Value"]
         # module_variables["output"]
     #MAIN SAUCE
