@@ -140,7 +140,7 @@ def use_module(arg):
             new_module = class_obj(variables)
             MODULE = "(" + class_name + ")"
             return new_module
-    except ModuleNotFoundError:
+    except KeyError:
         print(f"\nModule '{selected_module}' not found.")
 
 #execute the module
@@ -163,13 +163,15 @@ def execute():
 
     pid = executer.execute_command(vanilla_command,MALA_OUTPUT_FILE)
     if pid:
-        executed_processes[pid] = {"module":class_name, "command":vanilla_command, "status":None, "time":curr_time, "output":MALA_OUTPUT_FILE}
+        executed_processes[pid] = {"module":class_name, "command":vanilla_command, "status":"Running", "time":curr_time, "output":MALA_OUTPUT_FILE}
 
 #show list of executed commands
-def show_executed():
+def show_status():
     #Get status of processes
     for pid in executed_processes.keys():
-        executed_processes[pid]["status"] = executer.process_check(pid)
+        if executed_processes[pid]["status"] in [None, "Running"]:
+            getUpdate_process_status(pid)
+        continue
 
     #Create the table of executed processes
     process_table = [["Index","PID","Module","Command","Status","Time","Output"]]
@@ -183,7 +185,7 @@ def show_executed():
     return 0
 
 #check status of a running command or all running commands
-def show_status(arg):
+def show_output(arg):
     if not len(arg):
         print ("This option requires arguments")
         return
@@ -195,16 +197,22 @@ def show_status(arg):
     #Search executed_process dict for the index
     pid = list(executed_processes.keys())[index-1]
     #pass file name to get status
-    executer.get_status(executed_processes[pid]["output"])
+    executer.get_command_output(executed_processes[pid]["output"])
 
     return 0
 
 #kill process
-def kill_process(arg):
-    if arg[0] == "all":
+def kill_process(arg=""):
+    if arg[0].strip() == "all":
+        user_confirmation = validate_user_confirm("This will kill all running processes. Continue?")
+        if not user_confirmation.lower().startswith("y"):
+            print("Nothing was killed")
+            return
         kill_all_processes()
         return
-    if not isinstance(arg[0],int):
+    try:
+        int(arg[0])
+    except:
         print("Invalid argument, either `kill all` or `kill <process index>`")
         return
     index = abs(int(arg[0]))
@@ -213,32 +221,41 @@ def kill_process(arg):
         return
     
     kill_pid = list(executed_processes.keys())[index-1]
+    user_confirmation = validate_user_confirm(f"Kill process {kill_pid['module']} started at {kill_pid['time']}?")
+    if not user_confirmation.lower().startswith("y"):
+        print("Nothing was killed")
+        return
     executer.kill_process(kill_pid)
+    getUpdate_process_status(kill_pid, True)
     return 
 
 #remove process from executed process list
-def clear_process(arg = ""):
+def clear_process(arg):
     process_removal_list = []
-    if arg[0] == all:
+    if arg[0] == 'all':
         user_confirmation = validate_user_confirm("This will clear all processes in executed list. Continue?")
         if not user_confirmation.lower().startswith("y"):
-            print("Nothing was be cleared")
+            print("Nothing was cleared")
             return
         for pid, pid_info in executed_processes.items():
-            if not (pid_info["status"] == "Running" & executer.get_status(pid) == "Running"):
+            if not (pid_info["status"] == "Running" and getUpdate_process_status(pid) == "Running"):
                 process_removal_list.append(pid)
                 continue
             user_kill_confirm = validate_user_confirm(f"{pid_info['module']} started at {pid_info['time']} is still running. Kill before clearing?")
             if not user_kill_confirm.lower().startswith("y"):
                 print("Skipping... This process will not be killed or cleared")
                 continue
-            kill_process(pid)
+            executer.kill_process(pid)
+            getUpdate_process_status(pid, True)
             process_removal_list.append(pid)
         for process in process_removal_list:
             executed_processes.pop(process)
+        return
 
-    if not isinstance(arg[0],int):
-        print("Invalid argument, either `clear all` or `clear <process index>`")
+    try:
+        int(arg[0])
+    except ValueError:
+        print("Invalid argument, either `kill all` or `kill <process index>`")
         return
     index = abs(int(arg[0]))
     if index > len(executed_processes):
@@ -246,10 +263,11 @@ def clear_process(arg = ""):
         return
     
     clear_process = list(executed_processes.keys())[index-1]
-    if not (clear_process["status"] == "Running" & executer.get_status(clear_process) == "Running"):
+    clear_process_info = executed_processes[clear_process]
+    if not (clear_process_info["status"] == "Running" and getUpdate_process_status(clear_process) == "Running"):
         executed_processes.pop(clear_process)
     else:
-        user_kill_confirm = validate_user_confirm(f"{clear_process['module']} started at {clear_process['time']} is still running. Kill before clearing?")
+        user_kill_confirm = validate_user_confirm(f"{clear_process_info['module']} started at {clear_process_info['time']} is still running. Kill before clearing?")
         if not user_kill_confirm.lower().startswith("y"):
             print("Nothing was be cleared")
             return
@@ -299,15 +317,15 @@ command_handlers = {
         "description": "Execute the current command built from the module",
         "valid_inputs": ["run"]
     },
-    "executed": {
-        "function": show_executed,
-        "description": "Show running commands",
-        "valid_inputs": ["executed","show-run"]
-    },
     "status": {
         "function": show_status,
-        "description": "show status of commands",
-        "valid_inputs": ["status","show"]
+        "description": "Show command/ process statuses",
+        "valid_inputs": ["status","show-run", "executed"]
+    },
+    "show": {
+        "function": show_output,
+        "description": "show output of commands",
+        "valid_inputs": ["show","output"]
     },
     "kill": {
         "function": kill_process,
@@ -315,7 +333,7 @@ command_handlers = {
         "valid_inputs": ["kill","stop"]
     },
     "clear": {
-        "function": None,
+        "function": clear_process,
         "description": "clear completed processes from executed process list",
         "valid_inputs": ["clear"]
     },    
@@ -327,18 +345,19 @@ command_handlers = {
 
 }
 
-def get_process_status(check_pid):
-    executed_processes[check_pid]["status"] = executer.process_check(check_pid)
+def getUpdate_process_status(check_pid, killed = False):
+    status = "Killed" if killed else executer.get_process_status(check_pid)
+    executed_processes[check_pid]["status"] = status
     return executed_processes[check_pid]["status"]
 
 def kill_all_processes():
     #Get status of processes
     for pid, pid_info in executed_processes.items():
-        if pid_info["status"] != "Completed" & get_process_status(pid) == "Running":
+        if pid_info["status"] != "Completed" and getUpdate_process_status(pid) == "Running":
             #Kill process if its still running
             executer.kill_process(pid)
             #Update executed processes info
-            pid_info["status"] = executer.get_status(pid)
+            getUpdate_process_status(pid, True)
 
 def validate_user_confirm(confirm_message):
     valid_confirmational_inputs = ['y','yes','n','no']

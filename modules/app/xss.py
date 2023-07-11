@@ -1,13 +1,12 @@
-class xss:
+from modules.base_module import baseModule
+
+class xss(baseModule):
     def __init__(self, variables):
         self.module_variables = variables["module_variables"]
+        super().__init__(variables)
 
     def initialize_before_run(self,tools,variables):
-        ### GET common variables
-        self.variables = variables
-        common_vars = variables.get("common_variables")
-        self.target = common_vars["RHOST"]["Value"]
-        self.port = common_vars["RPORT"]["Value"]
+        super().initialize_before_run(variables)
         self.xsstrike = tools.get("xsstrike")
         self.url = "http://" + self.target
         if self.port:

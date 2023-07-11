@@ -1,21 +1,27 @@
-class sql_enum:
+from modules.base_module import baseModule
+
+class sql_enum(baseModule):
     def __init__(self, variables):
         self.module_variables = variables["module_variables"]
+
+        #Always required
         self.module_variables["mode"] = {"Value": " ", "Description": "Request or URL", "Required": True}
+        self.always_required = ["mode"]
+        self.valid_modes = {"request":["r","req","request"],"url": ["u", "url"]}
+
+        #Required only for request mode
         self.module_variables["request_file"] = {"Value":" ", "Description":"Path to the request file", "Required": False}
+        self.mode_required_dict = {"request":["request_file"],"url": []}
+        super().__init__(variables, self.always_required, self.valid_modes,self.mode_required_dict)
 
     def initialize_before_run(self,tools,variables):
-        ### GET common variables
-        self.variables = variables
-        common_vars = variables.get("common_variables")
-        self.target = common_vars["RHOST"]["Value"]
-        self.port = common_vars["RPORT"]["Value"]
+        super().initialize_before_run(variables)
         self.sqlmap = tools.get("sqlmap")
         self.url = "http://" + self.target
         if self.port:
             self.url += ":" + str(self.port)
         self.whatweb = tools.get("whatweb")
-        
+
     def test(self):
         print("Imported this module")
         print(self.target)

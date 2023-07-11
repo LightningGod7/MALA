@@ -1,5 +1,5 @@
 class baseModule:
-    def __init__(self,variables,always_required,mode_dict = {},mode_required_dict= {}):
+    def __init__(self,variables,always_required = None, mode_dict = {}, mode_required_dict= {}):
         # self.variables = variables
         self.module_variables = variables["module_variables"]
         self.always_required_options = always_required

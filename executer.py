@@ -14,7 +14,7 @@ def execute_command(vanilla_command, mala_output_file):
     # error = stderr.decode()
     return process.pid
 
-def process_check(pid):
+def get_process_status(pid):
     try:
         process = psutil.Process(pid)
         if process.is_running():
@@ -24,7 +24,7 @@ def process_check(pid):
     except psutil.NoSuchProcess:
         return "Completed"
 
-def get_status(file_to_read):
+def get_command_output(file_to_read):
     print(file_to_read)
     try:
         sp.run(["tail", file_to_read])
@@ -37,6 +37,8 @@ def kill_process(pid):
     try:
         process = psutil.Process(pid)
         process.terminate()
+        while get_process_status(pid) == "Running":
+            continue
         return True
     except psutil.NoSuchProcess:
         print(f"No process found with PID {pid}")

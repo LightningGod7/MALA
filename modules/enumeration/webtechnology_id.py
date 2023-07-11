@@ -1,13 +1,12 @@
-class webtech_enum:
+from modules.base_module import baseModule
+
+class webtech_enum(baseModule):
     def __init__(self, variables):
         self.module_variables = variables["module_variables"]
-
+        super().__init__(variables)
 
     def initialize_before_run(self,tools,variables):
-        ### GET common variables
-        self.variables = variables
-        common_vars = variables.get("common_variables")
-        self.target = common_vars["RHOST"]["Value"]
+        super().initialize_before_run(variables)
         self.whatweb = tools.get("whatweb")
         self.url = "http://" + self.target
         

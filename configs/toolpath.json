@@ -9,7 +9,7 @@
     "nmap": "/usr/bin/nmap",
     "searchsploit": "/usr/bin/searchsploit",
     "sqlmap": "/usr/bin/sqlmap",
-    "gobuster": "/usr/bin/gobuster",
+    "gobuster": "C:\\Users\\Lightning\\gobuster.exe",
     "wfuzz": "/usr/bin/wfuzz",
     "ffuf": "/usr/bin/ffuf",
     "cewl": "/usr/bin/cewl",

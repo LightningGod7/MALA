@@ -1,14 +1,13 @@
-class waf_fingerprint:
+from modules.base_module import baseModule
+
+class waf_fingerprint(baseModule):
     def __init__(self, variables):
         self.module_variables = variables["module_variables"]
+        super().__init__(variables)
 
     def initialize_before_run(self,tools,variables):
-        ### GET common variables
-        self.variables = variables
-        common_vars = variables.get("common_variables")
-        self.target = common_vars["RHOST"]["Value"]
-        self.port = common_vars["RPORT"]["Value"]
-        self.xss = tools.get("wafw00f")
+        super().initialize_before_run(variables)
+        self.wafw00f = tools.get("wafw00f")
 
     def test(self):
         print("Imported this module")
