@@ -3,7 +3,7 @@
     {
         "target": {"Value": "guohuaqun.mooo.com", "Description": "Target", "Required" : true},
         "port": {"Value": 80, "Description": "Target Port", "Required" : false},
-        "wordlist": {"Value": ".\\wordlists\\wls", "Description": "Wordlist to use", "Required" : false}
+        "wordlist": {"Value": "/wordlists/wls", "Description": "Wordlist to use", "Required" : false}
     },
     "module_variables":
     {
