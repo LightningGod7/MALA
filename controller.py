@@ -5,10 +5,10 @@ from prettytable import PrettyTable
 from datetime import datetime
 import os
 import json
+import readline
 
 import executer
 
-MALA_OUTPUT_PATH = os.path.join(".", "output", "")
 
 #DEFINE
 PROMPT = "MALA"
@@ -16,12 +16,13 @@ MODULE = ""
 
 executed_processes = {}
 
-def initialize(loaded_modules, universal_variables, tool_paths, modules_config):
+def initialize(loaded_modules, universal_variables, tool_paths, modules_config, TOOL_NAME, MALA_OUTPUT_PATH):
     global modules, variables, tools, executed_processes, modules_config_path, module_mapping
     modules = loaded_modules
-    module_mapping = {os.path.splitext(os.path.basename(path))[0]: path for path in modules}
+    module_mapping = {os.path.splitext(os.path.basename(path.split(TOOL_NAME, 1)[-1]))[0]: path.split(TOOL_NAME, 1)[-1] for path in modules}
     modules_config_path = modules_config
     variables = universal_variables
+    variables["common_variables"]["output"]["Value"] = MALA_OUTPUT_PATH
     tools = tool_paths
     executed_processes = {}
 
@@ -30,7 +31,7 @@ def help():
     print("\nAvailable commands:")
     for command, handler in command_handlers.items():
         command_description = handler.get("description", "No description")
-        print(f"{command} - {command_description}")
+        print(f"{command} - {command_description}\n")
 
 #set variable
 def set_variable(args):
@@ -110,11 +111,11 @@ def show_modules(arg=[""]):
     print("\n")
     table = PrettyTable()
     table.field_names = ["Module Name", "Module Description", "Module Tagging"]
-    table.max_table_width=120
+    table.max_table_width=200
     for module , module_info in module_menu_data.items():
         if module in module_names:
             description = module_info["Description"]
-            tagging = module_info["Tagging"][0] if module_info["Tagging"] else "None"
+            tagging = ','.join(module_info["Tagging"] if module_info["Tagging"] else "None")
 
             table.add_row([module, description, tagging])
 
@@ -132,6 +133,7 @@ def use_module(arg):
     variables["module_variables"].clear()
     try:
         module_import_path = module_mapping[selected_module].replace('\\', '.').replace('/', '.').replace(".py","").lstrip('.')
+
         print(module_import_path)
         module = importlib.import_module(module_import_path)
         module_class = inspect.getmembers(module, inspect.isclass)
@@ -145,7 +147,6 @@ def use_module(arg):
 
 #execute the module
 def execute():
-    global MALA_OUTPUT_FILE
     new_module.initialize_before_run(tools,variables)
     command_list = new_module.get_command_list()
     if not command_list:
@@ -158,12 +159,12 @@ def execute():
     vanilla_command = " ".join(command_list)
 
     curr_time = datetime.now()
-    MALA_OUTPUT_FILE = MALA_OUTPUT_PATH + class_name + "_" + str(curr_time.strftime("%Y%m%d_%H%M%S_%f"))
+    output = variables["common_variables"]["output"]["Value"] + class_name + "_" + str(curr_time.strftime("%Y%m%d_%H%M%S_%f"))
     #attempt to execute command and get pid
 
-    pid = executer.execute_command(vanilla_command,MALA_OUTPUT_FILE)
+    pid = executer.execute_command(vanilla_command,output)
     if pid:
-        executed_processes[pid] = {"module":class_name, "command":vanilla_command, "status":"Running", "time":curr_time, "output":MALA_OUTPUT_FILE}
+        executed_processes[pid] = {"module":class_name, "command":vanilla_command, "status":"Running", "time":curr_time, "output":output}
 
 #show list of executed commands
 def show_status():
@@ -185,9 +186,9 @@ def show_status():
     return 0
 
 #check status of a running command or all running commands
-def show_output(arg):
-    if not len(arg):
-        print ("This option requires arguments")
+def show_output(arg=""):
+    if not arg:
+        print ("Usage: show <command index>\n Index can be found with the `status` command")
         return
     
     index = abs(int(arg[0]))
@@ -221,7 +222,7 @@ def kill_process(arg=""):
         return
     
     kill_pid = list(executed_processes.keys())[index-1]
-    user_confirmation = validate_user_confirm(f"Kill process {kill_pid['module']} started at {kill_pid['time']}?")
+    user_confirmation = validate_user_confirm(f"Kill process {executed_processes[kill_pid]['module']} started at {executed_processes[kill_pid]['time']}?")
     if not user_confirmation.lower().startswith("y"):
         print("Nothing was killed")
         return
@@ -230,7 +231,7 @@ def kill_process(arg=""):
     return 
 
 #remove process from executed process list
-def clear_process(arg):
+def remove_process(arg):
     process_removal_list = []
     if arg[0] == 'all':
         user_confirmation = validate_user_confirm("This will clear all processes in executed list. Continue?")
@@ -262,17 +263,17 @@ def clear_process(arg):
         print("Invalid index")
         return
     
-    clear_process = list(executed_processes.keys())[index-1]
-    clear_process_info = executed_processes[clear_process]
-    if not (clear_process_info["status"] == "Running" and getUpdate_process_status(clear_process) == "Running"):
-        executed_processes.pop(clear_process)
+    remove_process = list(executed_processes.keys())[index-1]
+    remove_process_info = executed_processes[remove_process]
+    if not (remove_process_info["status"] == "Running" and getUpdate_process_status(remove_process) == "Running"):
+        executed_processes.pop(remove_process)
     else:
-        user_kill_confirm = validate_user_confirm(f"{clear_process_info['module']} started at {clear_process_info['time']} is still running. Kill before clearing?")
+        user_kill_confirm = validate_user_confirm(f"{remove_process_info['module']} started at {remove_process_info['time']} is still running. Kill before clearing?")
         if not user_kill_confirm.lower().startswith("y"):
             print("Nothing was be cleared")
             return
-        executer.kill_process(clear_process)
-        executed_processes.pop(clear_process)
+        executer.kill_process(remove_process)
+        executed_processes.pop(remove_process)
         print(f"process #{index} has been cleared")
 
 #handle for when unknown command is given
@@ -289,32 +290,32 @@ command_handlers = {
     },
     "set": {
         "function": set_variable,
-        "description": "Set a variable",
+        "description": "Set a variable\n Usage: set <variable> <value>",
         "valid_inputs": ["set"]
     },
     "clear": {
         "function": clear_variable,
-        "description": "Clear the variable value",
+        "description": "Clear the variable value\n Usage: clear <variable>",
         "valid_inputs": ["clear"]
     },
     "variables": {
         "function": show_variables,
-        "description": "Show variables",
+        "description": "Show variables\n Usage: `options`",
         "valid_inputs": ["variables", "options", "vars"]
     },
     "modules": {
         "function": show_modules,
-        "description": "Show all available modules",
+        "description": "Show all available modules\n Usage: `modules`",
         "valid_inputs": ["modules", "mods"]
     },
     "use": {
         "function": use_module,
-        "description": "Set context to a module",
+        "description": "Set context to a module\n Usage: `use <module-name>",
         "valid_inputs": ["use"]
     },
     "run": {
         "function": execute,
-        "description": "Execute the current command built from the module",
+        "description": "Execute the current command built from the module\n Usage: `run` (after running `use` command to select module)",
         "valid_inputs": ["run"]
     },
     "status": {
@@ -324,18 +325,18 @@ command_handlers = {
     },
     "show": {
         "function": show_output,
-        "description": "show output of commands",
+        "description": "show output of commands\n Usage: `show <process-index>`, ctrl+c to escape the output",
         "valid_inputs": ["show","output"]
     },
     "kill": {
         "function": kill_process,
-        "description": "`kill <process-index>` or `kill all`",
+        "description": "kill process(es) from executed process list\n Usage: `kill <process-index>` or `kill all`",
         "valid_inputs": ["kill","stop"]
     },
-    "clear": {
-        "function": clear_process,
-        "description": "clear completed processes from executed process list",
-        "valid_inputs": ["clear"]
+    "remove": {
+        "function": remove_process,
+        "description": "clear completed process(es) from executed process list\n Usage: `rem <process-index>` or `r all`",
+        "valid_inputs": ["remove", "r", "rem"]
     },    
     "exit": {
         "function": None,
@@ -370,12 +371,31 @@ def validate_user_confirm(confirm_message):
         break
     return user_confirmation_input        
 
-        
+def get_command_history_file():
+    # Create a separate history file for each user based on their username
+    history_file = f".command_history"
+    return history_file       
+            
+
 # Main
 def main():
+    command_history = get_command_history_file()
+    readline.parse_and_bind("history")
+    readline.set_history_length(100)
+
+    # Load command history from previous sessions
+    if not os.path.exists(command_history):
+        open(command_history, 'wb').close()
+
+    readline.read_history_file(command_history)
+
     while True:
         try:
+            
             user_input = input("\n" + PROMPT + MODULE + " > ").strip()
+            readline.add_history(user_input)
+            readline.write_history_file(command_history)
+
             command = user_input.split()[0].lower()
             args = user_input.split()[1:]
             matched_command = None
@@ -392,9 +412,15 @@ def main():
         except KeyboardInterrupt:
             print("\nCtrl+C pressed. Exiting...")
             kill_all_processes()
-            
             break
 
-        except:
-            continue
+        except FileNotFoundError:
+            # Create an empty history file if it doesn't exist
+            open(command_history, 'wb').close()
+
+        # except IndexError:
+        #     #Probably input typo
+        #     pass
+        # except:
+        #     continue
 

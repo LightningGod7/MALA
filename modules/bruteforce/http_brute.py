@@ -10,7 +10,7 @@ class http_bruteforce(baseModule):
         self.module_variables["username"] = {"Value": "admin", "Description": "single username (takes precedence over userlist)", "Required": True}
         self.module_variables["userlist"] = {"Value":"", "Description":"username list", "Required":True}
         self.module_variables["password"] = {"Value":"", "Description":"single password (takes precedence over passlist)", "Required":True}
-        self.module_variables["passlist"] = {"Value": ".\wordlists\wls", "Description":"password list", "Required":False}
+        self.module_variables["passlist"] = {"Value": "/wls/rockyou.txt", "Description":"password list", "Required":False}
         
         self.module_variables["mode"] = {"Value": "basic", "Description":"basic auth | http get | http post", "Required":True}
 
@@ -19,7 +19,7 @@ class http_bruteforce(baseModule):
 
         ##Required only for http-get and http-post
         self.module_variables["error-pattern"] = {"Value": "invalid", "Description":"error pattern to match on failed attempt", "Required":False}
-        self.module_variables["urlpath"] = {"Value": "/066/login.php", "Description":"url path to the login form on the target e.g. /", "Required":False}
+        self.module_variables["urlpath"] = {"Value": "", "Description":"url path to the login form on the target e.g. /", "Required":False}
         self.module_variables["userfield"] = {"Value": "username", "Description":"username html field", "Required":True}       
         self.module_variables["passfield"] = {"Value": "pass", "Description":"password html field", "Required":False}
 

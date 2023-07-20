@@ -1,6 +1,6 @@
 from modules.base_module import baseModule
 
-class vulnScan(baseModule):
+class nmapScript(baseModule):
     def __init__(self, variables):
         ### SET module variables
         self.module_variables = variables["module_variables"]

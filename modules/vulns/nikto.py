@@ -70,14 +70,15 @@ class nikto(baseModule):
         additional_options = self.get_additional_options()
         if additional_options == "Invalid input":
             return "Handled"
-        command_list += additional_options.append("-nointeractive")
+        additional_options.append("-nointeractive")
+        command_list += additional_options
         return command_list
 
     def get_additional_options(self):
         username = self.module_variables["username"]["Value"]
         password = self.module_variables["password"]["Value"]
         tuning = self.module_variables["tuning"]["Value"]
-        tuning_pattern = r"^(x\s*(?:\d|[a-c])+|\d+|[a-c]+)$"
+        tuning_pattern = r"^(?!.*(.).*\1)(x\s*[0-9a-c]{0,9}|[0-9a-c]{1,10})$"
         mutate = self.module_variables["mutate"]["Value"]
         mutate_pattern = r"^[1-6]{1,6}$"
         # plugins = self.module_variables["Plugins"]["Value"]
@@ -132,3 +133,4 @@ class nikto(baseModule):
         print(self.mutate_table)
         print("Example 1: 123 - Test all files with all root directories, Guess for password file names and Enumerate user names via Apache")
         return "Handled"
+

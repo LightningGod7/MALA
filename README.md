@@ -1,12 +1,6 @@
 # Web-Sec-Tools
 Automation tools for web security
 
-
-
-
-
-
-
 -------- Check List ----------
 
 === Modules ===

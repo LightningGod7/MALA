@@ -1,140 +1,62 @@
 {
     "base_module": {
-        "Description": "",
+        "Description": "The parent class for all other modules to inherit from",
         "Tagging": [
-            ""
+            "BASE"
         ]
     },
     "sqlmap": {
+        "Description": "Uses sqlmap tool",
+        "Tagging": [
+            "sql", "db", "vulns"
+        ]
+    },
+    "xss": {
+        "Description": "Finds and tests XSS vulnerabilities",
+        "Tagging": [
+            "xss", "vulns"
+        ]
+    },
+    "nmap_script": {
+        "Description": "finds known vulnerabilities with nmap scripts",
+        "Tagging": [
+            "vulns", "scanning"
+        ]
+    },
+    "nikto": {
+        "Description": "nikto scanning",
+        "Tagging": [
+            "enum", "vulns", "scanning"
+        ]
+    },
+    "ssl_scan": {
         "Description": "",
         "Tagging": [
             ""
         ]
     },
-    "xss": {
+    "waf_scan": {
+        "Description": "",
+        "Tagging": [
+            ""
+        ]
+    },
+    "url_enum": {
+        "Description": "Perform url fuzzing including directories, subdomains and range",
+        "Tagging": [
+            "enum", "directories", "fuzzing", "subdomain"
+        ]
+    },
+    "webtech_id": {
         "Description": "",
         "Tagging": [
             ""
         ]
     },
     "http_brute": {
-        "Description": "",
+        "Description": "Brute force http authentication including basic, digest, get form, post form",
         "Tagging": [
-            ""
-        ]
-    },
-    "nikto": {
-        "Description": "",
-        "Tagging": [
-            ""
-        ]
-    },
-    "ssl_subdomain": {
-        "Description": "",
-        "Tagging": [
-            ""
-        ]
-    },
-    "url_enumeration": {
-        "Description": "",
-        "Tagging": [
-            ""
-        ]
-    },
-    "waf_fingerprinting": {
-        "Description": "",
-        "Tagging": [
-            ""
-        ]
-    },
-    "webtechnology_id": {
-        "Description": "",
-        "Tagging": [
-            ""
-        ]
-    },
-    "drupal": {
-        "Description": "",
-        "Tagging": [
-            ""
-        ]
-    },
-    "joomla": {
-        "Description": "",
-        "Tagging": [
-            ""
-        ]
-    },
-    "tomcat": {
-        "Description": "",
-        "Tagging": [
-            ""
-        ]
-    },
-    "webdav": {
-        "Description": "",
-        "Tagging": [
-            ""
-        ]
-    },
-    "wordpress": {
-        "Description": "",
-        "Tagging": [
-            ""
-        ]
-    },
-    "nmap-builder": {
-        "Description": "",
-        "Tagging": [
-            ""
-        ]
-    },
-    "commandinjection": {
-        "Description": "",
-        "Tagging": [
-            ""
-        ]
-    },
-    "commonwebexploits": {
-        "Description": "",
-        "Tagging": [
-            ""
-        ]
-    },
-    "fileuploads": {
-        "Description": "",
-        "Tagging": [
-            ""
-        ]
-    },
-    "php": {
-        "Description": "",
-        "Tagging": [
-            ""
-        ]
-    },
-    "searchsploit": {
-        "Description": "",
-        "Tagging": [
-            ""
-        ]
-    },
-    "cewl": {
-        "Description": "",
-        "Tagging": [
-            ""
-        ]
-    },
-    "vuln_scan": {
-        "Description": "",
-        "Tagging": [
-            ""
-        ]
-    },
-    "nmap_script": {
-        "Description": "",
-        "Tagging": [
-            ""
+            "brute", "authentication"
         ]
     }
 }
