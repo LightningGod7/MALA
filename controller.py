@@ -5,10 +5,9 @@ from prettytable import PrettyTable
 from datetime import datetime
 import os
 import json
-import readline
+import platform 
 
 import executer
-
 
 #DEFINE
 PROMPT = "MALA"
@@ -133,15 +132,11 @@ def use_module(arg):
     variables["module_variables"].clear()
     try:
         module_import_path = module_mapping[selected_module].replace('\\', '.').replace('/', '.').replace(".py","").lstrip('.')
-
         print(module_import_path)
-        module = importlib.import_module(module_import_path)
-        module_class = inspect.getmembers(module, inspect.isclass)
-        if module_class:
-            class_name, class_obj = module_class[-1]
-            new_module = class_obj(variables)
-            MODULE = "(" + class_name + ")"
-            return new_module
+        new_module, class_name = dynamic_import(module_import_path)
+        MODULE = "(" + class_name + ")"
+        return new_module
+    
     except KeyError:
         print(f"\nModule '{selected_module}' not found.")
 
@@ -376,9 +371,51 @@ def get_command_history_file():
     history_file = f".command_history"
     return history_file       
             
+#To dynamically load modules/ libraries
+def dynamic_import(module_import_path):
+    module = importlib.import_module(module_import_path)
+    module_class = inspect.getmembers(module, inspect.isclass)
+    if module_class:
+        class_name, class_obj = module_class[-1]
+        new_module = class_obj(variables)
+        return new_module, class_name
+    return module
+    
 
-# Main
-def main():
+#Runs if platform is windows
+def winMain():
+    while True:
+        try:         
+            user_input = input("\n" + PROMPT + MODULE + " > ").strip()
+            command = user_input.split()[0].lower()
+            args = user_input.split()[1:]
+            matched_command = None
+            matched_command = [command_key for command_key, command_info in command_handlers.items() if command in command_info["valid_inputs"]] 
+            if not matched_command:
+                command_not_found(user_input)
+            if matched_command[0] == "exit":
+                kill_all_processes()
+                break
+            if matched_command:
+                command_function = command_handlers[matched_command[0]].get("function")
+                command_function(args) if len(args) != 0 else command_function()
+            
+        except KeyboardInterrupt:
+            print("\nCtrl+C pressed. Exiting...")
+            kill_all_processes()
+            break
+
+        except IndexError:
+            #Probably input typo
+            pass
+
+        except:
+            continue
+
+#Runs if platform is linux
+def linuxMain():
+    #Dynamically load readline library
+    readline = dynamic_import("readline")
     command_history = get_command_history_file()
     readline.parse_and_bind("history")
     readline.set_history_length(100)
@@ -418,9 +455,15 @@ def main():
             # Create an empty history file if it doesn't exist
             open(command_history, 'wb').close()
 
-        # except IndexError:
-        #     #Probably input typo
-        #     pass
-        # except:
-        #     continue
+        except IndexError:
+            #Probably input typo
+            pass
+        except:
+            continue
 
+#Check Windows or Linux
+def main():
+    if platform.system() == "Windows":
+        winMain()
+    elif platform.system() == "Linux":
+        linuxMain()
