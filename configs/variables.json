@@ -1,8 +1,9 @@
 {
     "common_variables":
     {
-        "target": {"Value": "10.10.86.110", "Description": "Target", "Required" : true},
-        "port": {"Value": 80, "Description": "Target Port", "Required" : false},
+        "target": {"Value": "target.pg", "Description": "Target", "Required" : true},
+        "port": {"Value": "", "Description": "port", "Required" : false},
+        "path": {"Value": "/", "Description": "starting path", "Required" : false},
         "wordlist": {"Value": "/wls/SecLists/Discovery/Web-Content/directory-list-lowercase-2.3-big.txt", "Description": "Wordlist to use", "Required" : false},
         "output": {"Value": "", "Description": "directory to write outputs", "Required" : false}
     },

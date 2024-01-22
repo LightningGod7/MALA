@@ -16,12 +16,12 @@ class url_enum(baseModule):
         self.mode_required_dict = {"directory":[],"range": ["range"],"subdomain":[]}
 
         #Optional
-        self.module_variables["extensions"] = {"Value":"", "Description":"file extensions to fuzz (e.g. .php, .html, .txt)", "Required":False}
-        self.module_variables["recursive"] = {"Value":"", "Description":"recursion in enumeration and depth. (`i` for infinite)", "Required":False}
-        self.module_variables["filter"] = {"Value":"", "Description":"filter by `line, word, size, status:[metric]` split each filter with ',' e.g. status:404,line:7 (only can have 1 of each type of filter)", "Required":False}
-        self.module_variables["username"] = {"Value": "", "Description":"auth mode will be enabled if both user and pass are set", "Required":False}
-        self.module_variables["password"] = {"Value": "", "Description":"auth mode will be enabled if both user and pass are set", "Required":False}
-        self.module_variables["cookie"] = {"Value": "", "Description":"cookie session authentication. Takes precedence over credentials auth", "Required":False}
+        self.module_variables["extensions"] = {"Value":"", "Description":"e.g. .php, .html, .txt", "Required":False}
+        self.module_variables["recursive"] = {"Value":"", "Description":"`i` for infinite", "Required":False}
+        self.module_variables["filter"] = {"Value":"", "Description":"line `l`, word `w`, size `s`, status `c`, char `ch`: \ne.g (s:109,l:7,c:404) \nnot for gobuster", "Required":False}
+        self.module_variables["username"] = {"Value": "", "Description":"auth enabled if both user and pass set", "Required":False}
+        self.module_variables["password"] = {"Value": "", "Description":"auth enabled if both user and pass set", "Required":False}
+        self.module_variables["cookie"] = {"Value": "", "Description":"cookie session authentication. Precedence over credentials auth", "Required":False}
     
         super().__init__(variables,self.always_required, self.valid_modes, self.mode_required_dict)
 
@@ -31,11 +31,14 @@ class url_enum(baseModule):
 
         self.gobuster = tools.get("gobuster")
         self.wfuzz = tools.get("wfuzz")
+        self.ffuf = tools.get("ffuf")
 
         # module_variables["output"]
         self.url = "http://" + self.target
         if self.port:
             self.url += ":" + str(self.port)
+        if self.path:
+            self.url += str(self.path) if str(self.path).startswith("/") else str(self.path)
 
     #MAIN SAUCE
     def get_command_list(self):
@@ -56,7 +59,17 @@ class url_enum(baseModule):
             return
 
     #Module functionalities
+        
+    #dir fuzz caller
     def directory_fuzz(self):
+        #call ffuf if filters are specified
+        if self.module_variables["filter"]["Value"]:
+            return self.directory_fuff()
+        else:
+            return self.directory_gob()
+    
+    #dir fuzz with gobuster
+    def directory_gob(self):
         prefix = self.gobuster + " dir"
         target_arg = "-u " + self.url
         wordlist_arg = "-w " + self.wordlist
@@ -66,6 +79,17 @@ class url_enum(baseModule):
         command_list += self.get_additional_options("g","-c", "-x")
         return command_list
     
+    #dir fuzz with ffuf; for using with filters
+    def directory_fuff(self):
+        prefix = self.ffuf
+        target_arg = "-u " + self.url + "FUZZ" if str(self.url).endswith("/") else + "/FUZZ"
+        wordlist_arg = "-w " + self.wordlist
+        command_list = [prefix, target_arg, wordlist_arg]
+        
+        ##Add cases for recursive, authentication, extensions, diff types of output etc
+        command_list += self.get_additional_options("f","-b", "-e")
+        return command_list
+
     def range_fuzz(self):
         fuzz_range = self.module_variables["range"]["Value"]
         if not fuzz_range:
@@ -73,7 +97,7 @@ class url_enum(baseModule):
             return
         prefix = self.wfuzz
         range_arg = "-z range," + fuzz_range
-        target_arg = "-u " + self.url + "/FUZZ"
+        target_arg = "-u " + self.url + "FUZZ" if str(self.url).endswith("/") else + "/FUZZ"
         command_list = [prefix, range_arg, target_arg]
 
         ##Add cases for recursive, authentication, extensions, diff types of output etc
@@ -117,6 +141,11 @@ class url_enum(baseModule):
                 recursive_arg = "-r"
             elif recursive:
                 recursive_arg = "-r --depth " + recursive
+        elif tool_flag =="f":
+            if recursive == "i":
+                recursive_arg = "-recursion"
+            elif recursive:
+                recursive_arg = "-recursion-depth " + recursive
         elif tool_flag == "w":
             if recursive == "i":
                 recursive_arg = "-R" + "100"
@@ -124,7 +153,6 @@ class url_enum(baseModule):
                 recursive_arg = "-R" + recursive
 
         
-
         #Set auth flag to empty 1st
         auth_arg = ""
 
@@ -139,31 +167,52 @@ class url_enum(baseModule):
         if cookie:
             auth_arg = cookie_flag + " " + cookie
 
-        #If not using wfuzz then no need for filter input checks
-        if tool_flag != "w":
+        #If using gobuster then no need for filter input checks
+        if tool_flag == "g":
             additional_options = [extension_arg,recursive_arg,auth_arg]
             return [option for option in additional_options if option]
+        
+        #Set filter for wfuzz
+        if tool_flag == "w":
+            filter_arg = ["", "", "", "--hc 404"]
+            if filter_input[0] != "":
+                #Validate the input
+                for filter in filter_input:
+                    filter_type = filter.split(":")[0]
+                    filter_metric = filter.split(":")[1]
+                    if filter_type.lower() == "l":
+                        line_filter = "--hl " + filter_metric
+                        filter_arg[0] = line_filter
+                    elif filter_type.lower() == "w":
+                        word_filter = "--hw " + filter_metric
+                        filter_arg[1] = word_filter
+                    elif filter_type.lower() == "ch":
+                        size_filter = "--hh " + filter_metric
+                        filter_arg[2] = size_filter
+                    elif filter_type.lower() == "c":
+                        status_filter = "--hc " + filter_metric
+                        filter_arg[3] = status_filter
 
-        #set defualt to filter 404
-        filter_arg = ["", "", "", "--hc 404"]
-        if filter_input[0] != "":
-            #Validate the input
-            for filter in filter_input:
-                filter_type = filter.split(":")[0]
-                filter_metric = filter.split(":")[1]
-                if filter_type.lower() == "line":
-                    line_filter = "--hl " + filter_metric
-                    filter_arg[0] = line_filter
-                elif filter_type.lower() == "word":
-                    word_filter = "--hw " + filter_metric
-                    filter_arg[1] = word_filter
-                elif filter_type.lower() == "chars":
-                    size_filter = "--hh " + filter_metric
-                    filter_arg[2] = size_filter
-                elif filter_type.lower() == "status":
-                    status_filter = "--hc " + filter_metric
-                    filter_arg[3] = status_filter
-
+        #Set filter for ffuf
+        if tool_flag == "f":
+            filter_arg = ["", "", "", "-fc 404"]
+            if filter_input[0] != "":
+                #Validate the input
+                for filter in filter_input:
+                    filter_type = filter.split(":")[0]
+                    filter_metric = filter.split(":")[1]
+                    if filter_type.lower() == "l":
+                        line_filter = "-fl " + filter_metric
+                        filter_arg[0] = line_filter
+                    elif filter_type.lower() == "w":
+                        word_filter = "-fw " + filter_metric
+                        filter_arg[1] = word_filter
+                    elif filter_type.lower() == "s":
+                        size_filter = "-fs " + filter_metric
+                        filter_arg[2] = size_filter
+                    elif filter_type.lower() == "c":
+                        status_filter = "-fc " + filter_metric
+                        filter_arg[3] = status_filter
 
         additional_options = filter_arg + [extension_arg,recursive_arg,auth_arg]
         return [option for option in additional_options if option]

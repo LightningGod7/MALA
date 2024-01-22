@@ -25,6 +25,17 @@ def initialize(loaded_modules, universal_variables, tool_paths, modules_config, 
     tools = tool_paths
     executed_processes = {}
 
+#Control length of a string
+def wrap_text(input_string, iLimit = 50):
+    # Check if the input_string is longer than x characters
+    if len(input_string) > iLimit:
+        # Use list comprehension to add newline character every x characters
+        processed_string = '\n'.join(input_string[i:i + iLimit] for i in range(0, len(input_string), iLimit))
+        return processed_string
+    else:
+        # If the input string is shorter than x characters, return the original string
+        return input_string
+
 #help command
 def help():
     print("\nAvailable commands:")
@@ -73,11 +84,11 @@ def show_variables():
 
     common_table = [["Name", "Value", "Description"]]
     for var, details in common_vars.items():
-        common_table.append([var, details["Value"], details["Description"], details["Required"]])
+        common_table.append([var, wrap_text(details["Value"]), details["Description"], details["Required"]])
 
     module_table = [["Name", "Value", "Description", "Required"]]
     for var, details in module_vars.items():
-        module_table.append([var, details["Value"], details["Description"], details["Required"]])
+        module_table.append([var, wrap_text(details["Value"]), details["Description"], details["Required"]])
 
     print("\n--Common Options--\n")
     print(tabulate(common_table, headers="firstrow", tablefmt="pretty"))
@@ -159,22 +170,36 @@ def execute():
 
     pid = executer.execute_command(vanilla_command,output)
     if pid:
-        executed_processes[pid] = {"module":class_name, "command":vanilla_command, "status":"Running", "time":curr_time, "output":output}
+        executed_processes[pid] = {"module":class_name, "command":wrap_text(vanilla_command), "status":"Running", "time":curr_time, "output":output}
 
 #show list of executed commands
-def show_status():
+def show_status(arg=[""]):
     #Get status of processes
     for pid in executed_processes.keys():
         if executed_processes[pid]["status"] in [None, "Running"]:
             getUpdate_process_status(pid)
         continue
 
-    #Create the table of executed processes
-    process_table = [["Index","PID","Module","Command","Status","Time","Output"]]
+    verbose = arg[0]
+    #Full verbose
+    if verbose in ["a", "all", "full"]:
+        #Create the table of executed processes
+        process_table = [["Index","PID","Module","Command","Status","Time","Output"]]
+        index = 0
+        for pid, pid_info in executed_processes.items():
+            index += 1
+            process_table.append([index, pid, pid_info["module"], pid_info["command"], pid_info["status"], pid_info["time"].strftime("%Y%m%d %H:%M"), pid_info["output"]])
+
+        print("\n--Executed commands--\n")
+        print(tabulate(process_table, headers="firstrow", tablefmt="pretty"))
+        return 0
+    
+    #Create the simple table of executed processes
+    process_table = [["Index","Module","Command","Status"]]
     index = 0
     for pid, pid_info in executed_processes.items():
         index += 1
-        process_table.append([index, pid, pid_info["module"], pid_info["command"], pid_info["status"], pid_info["time"].strftime("%Y%m%d %H:%M"), pid_info["output"]])
+        process_table.append([index,pid_info["module"], pid_info["command"], pid_info["status"]])
 
     print("\n--Executed commands--\n")
     print(tabulate(process_table, headers="firstrow", tablefmt="pretty"))
@@ -305,7 +330,7 @@ command_handlers = {
     },
     "use": {
         "function": use_module,
-        "description": "Set context to a module\n Usage: `use <module-name>",
+        "description": "Set context to a module\n Usage: `use <module-name>`",
         "valid_inputs": ["use"]
     },
     "run": {
@@ -315,7 +340,7 @@ command_handlers = {
     },
     "status": {
         "function": show_status,
-        "description": "Show command/ process statuses",
+        "description": "Show command/ process statuses\n Usage: `status or status full`",
         "valid_inputs": ["status","show-run", "executed"]
     },
     "show": {

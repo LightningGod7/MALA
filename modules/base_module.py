@@ -56,6 +56,7 @@ class baseModule:
         common_vars = variables.get("common_variables")
         self.target = common_vars["target"]["Value"]
         self.port = common_vars["port"]["Value"]
+        self.path = common_vars["path"]["Value"]
         self.wordlist = common_vars["wordlist"]["Value"]
         # module_variables["output"]
     #MAIN SAUCE

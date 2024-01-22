@@ -1,0 +1,5 @@
+*pycache*/
+.vs
+output/
+*.pyc
+.command_history
