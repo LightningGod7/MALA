@@ -12,11 +12,11 @@ def execute_command(vanilla_command, mala_output_file):
     command = vanilla_command + " > " + mala_output_file + " 2>&1 &"
     print("executing `" + vanilla_command + "`")
     print("saving output to: " + mala_output_file)
-    #process = sp.Popen(command, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
-    # stdout, stderr = process.communicate()
-    # output = stdout.decode()
-    # error = stderr.decode()
-    #return process.pid
+    process = sp.Popen(command, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
+    stdout, stderr = process.communicate()
+    output = stdout.decode()
+    error = stderr.decode()
+    return process.pid
 
 def get_process_status(pid):
     try:
