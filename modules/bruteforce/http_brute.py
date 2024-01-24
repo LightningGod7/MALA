@@ -109,13 +109,13 @@ class http_bruteforce(baseModule):
         if not self.module_variables["base64"]["Value"]:
             username_field = self.module_variables["userfield"]["Value"] + "=^USER^"
             password_field = self.module_variables["passfield"]["Value"] + "=^PASS^"
-        elif self.module_variables["userfield"]["Value"] == "up":
+        elif self.module_variables["base64"]["Value"] == "up":
             username_field = self.module_variables["userfield"]["Value"] + "=^USER64^"
             password_field = self.module_variables["passfield"]["Value"] + "=^PASS64^"
-        elif self.module_variables["userfield"]["Value"] == "u":
+        elif self.module_variables["base64"]["Value"] == "u":
             username_field = self.module_variables["userfield"]["Value"] + "=^USER64^"
             password_field = self.module_variables["passfield"]["Value"] + "=^PASS^"
-        elif self.module_variables["userfield"]["Value"] == "p":
+        elif self.module_variables["base64"]["Value"] == "p":
             username_field = self.module_variables["userfield"]["Value"] + "=^USER^"
             password_field = self.module_variables["passfield"]["Value"] + "=^PASS64^"
         else:
