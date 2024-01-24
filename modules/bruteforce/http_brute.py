@@ -7,28 +7,32 @@ class http_bruteforce(baseModule):
         self.module_variables = variables["module_variables"]
 
         ##ALWAYS REQUIRED
-        self.module_variables["username"] = {"Value": "admin", "Description": "single username (takes precedence over userlist)", "Required": True}
+        self.module_variables["username"] = {"Value": "admin", "Description": "username (precedence over list)", "Required": True}
         self.module_variables["userlist"] = {"Value":"", "Description":"username list", "Required":True}
-        self.module_variables["password"] = {"Value":"", "Description":"single password (takes precedence over passlist)", "Required":True}
+        self.module_variables["password"] = {"Value":"", "Description":"password (precedence over list)", "Required":True}
         self.module_variables["passlist"] = {"Value": "/wls/rockyou.txt", "Description":"password list", "Required":False}
         
-        self.module_variables["mode"] = {"Value": "basic", "Description":"basic auth | http get | http post", "Required":True}
+        self.module_variables["mode"] = {"Value": "basic", "Description":"basic | get | post", "Required":True}
 
         self.always_required = ["mode","username","userlist","password","passlist"]
         self.valid_modes = {"http basic":["b", "basic", "d", "digest"],"http-get-form":["g", "get"],"http-post-form":["p", "post"]}
 
         ##Required only for http-get and http-post
-        self.module_variables["error-pattern"] = {"Value": "invalid", "Description":"error pattern to match on failed attempt", "Required":False}
-        self.module_variables["urlpath"] = {"Value": "", "Description":"url path to the login form on the target e.g. /", "Required":False}
-        self.module_variables["userfield"] = {"Value": "username", "Description":"username html field", "Required":True}       
-        self.module_variables["passfield"] = {"Value": "pass", "Description":"password html field", "Required":False}
+        self.module_variables["error-pattern"] = {"Value": "Incorrect", "Description":"identify error", "Required":False}
+        self.module_variables["urlpath"] = {"Value": "", "Description":"url path to form", "Required":False}
+        self.module_variables["userfield"] = {"Value": "username", "Description":"username field", "Required":True}       
+        self.module_variables["passfield"] = {"Value": "pass", "Description":"password field", "Required":False}
 
         self.mode_required_dict = {"http basic":[],"http-get-form":["error-pattern","urlpath","userfield","passfield"],"http-post-form":["error-pattern","urlpath","userfield","passfield"]}
 
         ##Optional
-        self.module_variables["cookie"] = {"Value": "", "Description":"cookie for session authentication", "Required":False}
-        self.module_variables["threads"] = {"Value": "", "Description":"number of threads to use", "Required":False}
+        self.module_variables["cookie"] = {"Value": "", "Description":"cookie", "Required":False}
+        self.module_variables["threads"] = {"Value": "", "Description":"", "Required":False}
         self.module_variables["verbose"] = {"Value": "", "Description":"verbose output", "Required":False}
+        #add b64 encoding option
+        self.module_variables["base64"] = {"Value": "", "Description":"b64 encode creds [u/p/up]", "Required":False}
+        self.module_variables["ignore-restore"] = {"Value": "True", "Description":"Ignore restore file \n(clear to unset)", "Required":False}
+        self.module_variables["stop-on-found"] = {"Value": "True", "Description":"stop when cred found \n(clear to unset)", "Required":False}
 
         super().__init__(variables, self.always_required, self.valid_modes, self.mode_required_dict)
 
@@ -75,7 +79,7 @@ class http_bruteforce(baseModule):
         command_list = [prefix, user_arg, pass_arg, target_arg, mode_arg]
         command_list.append(self.module_variables["urlpath"]["Value"]) if self.module_variables["urlpath"]["Value"] else None
         additional_options = self.get_additional_options()
-        command_list = command_list[:2] + additional_options + command_list[2:]
+        command_list = command_list[:3] + additional_options + command_list[3:]
         return command_list
 
     def get_brute(self,prefix,user_arg,pass_arg):
@@ -85,7 +89,7 @@ class http_bruteforce(baseModule):
         get_arg = self.create_mode_arg_input()
         command_list = [prefix, user_arg, pass_arg, target_arg, mode_arg, get_arg]
         additional_options = self.get_additional_options()
-        command_list = command_list[:2] + additional_options + command_list[2:]
+        command_list = command_list[:3] + additional_options + command_list[3:]
         return command_list
     
     def post_brute(self,prefix,user_arg,pass_arg):
@@ -95,15 +99,31 @@ class http_bruteforce(baseModule):
         
         command_list = [prefix, user_arg, pass_arg, target_arg, mode_arg, post_arg]
         additional_options = self.get_additional_options()
-        command_list = command_list[:2] + additional_options + command_list[2:]
+        command_list = command_list[:3] + additional_options + command_list[3:]
         return command_list
         
     def create_mode_arg_input(self):
         urlformaction = self.module_variables["urlpath"]["Value"]
-        username_field = self.module_variables["userfield"]["Value"] + "=^USER^"
-        password_field = self.module_variables["passfield"]["Value"] + "=^PASS^"
+
+        #Check credential encoding
+        if not self.module_variables["base64"]["Value"]:
+            username_field = self.module_variables["userfield"]["Value"] + "=^USER^"
+            password_field = self.module_variables["passfield"]["Value"] + "=^PASS^"
+        elif self.module_variables["userfield"]["Value"] == "up":
+            username_field = self.module_variables["userfield"]["Value"] + "=^USER64^"
+            password_field = self.module_variables["passfield"]["Value"] + "=^PASS64^"
+        elif self.module_variables["userfield"]["Value"] == "u":
+            username_field = self.module_variables["userfield"]["Value"] + "=^USER64^"
+            password_field = self.module_variables["passfield"]["Value"] + "=^PASS^"
+        elif self.module_variables["userfield"]["Value"] == "p":
+            username_field = self.module_variables["userfield"]["Value"] + "=^USER^"
+            password_field = self.module_variables["passfield"]["Value"] + "=^PASS64^"
+        else:
+            print("Invalid base64 input. Enter `u` for username, `p` for password pr `up` for both")
+            return
+
         credential_field = username_field + "&" + password_field
-        error_field = self.module_variables["error-pattern"]["Value"]
+        error_field = "F=" + self.module_variables["error-pattern"]["Value"]
         mode_arg_input = urlformaction + ":" + credential_field + ":" + error_field
 
         #Optional cookie field
@@ -120,5 +140,10 @@ class http_bruteforce(baseModule):
         port_arg = "-s " + str(port) if port else None
         threads_arg = "-t " + threads if threads else None
         verbose_arg = "-V"
-        additional_options = [port_arg,threads_arg,verbose_arg]
+
+        #Feature add ignore restore and stop on found
+        ignore_arg = "-I" if self.module_variables["ignore-restore"]["Value"] else None
+        stop_arg = "-f" if self.module_variables["stop-on-found"]["Value"] else None
+
+        additional_options = [ignore_arg,stop_arg,verbose_arg,port_arg,threads_arg]
         return [option for option in additional_options if option]

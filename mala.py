@@ -11,7 +11,7 @@ TOOLS_CONFIG_PATH = os.path.join(curr_dir, "configs", "toolpath.json")
 MODULES_CONFIG_PATH = os.path.join(curr_dir, "configs", "modules.json")
 MALA_OUTPUT_PATH = os.path.join(curr_dir, "output", "")
 
-TOOL_NAME = "Web-Sec-Tools"
+TOOL_NAME = "MALA"
 
 #Load all modules into dictionary
 def module_load(modules_folder):

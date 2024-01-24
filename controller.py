@@ -82,18 +82,18 @@ def show_variables():
     common_vars = variables["common_variables"]
     module_vars = variables["module_variables"]
 
-    common_table = [["Name", "Value", "Description"]]
+    common_table = [["Name", "Value", "Description", "Required"]]
     for var, details in common_vars.items():
-        common_table.append([var, wrap_text(details["Value"]), details["Description"], details["Required"]])
+        common_table.append([var, wrap_text(details["Value"], 30), details["Description"], details["Required"]])
 
     module_table = [["Name", "Value", "Description", "Required"]]
     for var, details in module_vars.items():
-        module_table.append([var, wrap_text(details["Value"]), details["Description"], details["Required"]])
+        module_table.append([var, wrap_text(details["Value"], 30), wrap_text(details["Description"]), details["Required"]])
 
     print("\n--Common Options--\n")
-    print(tabulate(common_table, headers="firstrow", tablefmt="pretty"))
+    print(tabulate(common_table, headers="firstrow", tablefmt="grid"))
     print("\n--Module Options--\n")
-    print(tabulate(module_table, headers="firstrow", tablefmt="pretty"))
+    print(tabulate(module_table, headers="firstrow", tablefmt="grid"))
 
 #show available modules
 def show_modules(arg=[""]):
@@ -191,7 +191,7 @@ def show_status(arg=[""]):
             process_table.append([index, pid, pid_info["module"], pid_info["command"], pid_info["status"], pid_info["time"].strftime("%Y%m%d %H:%M"), pid_info["output"]])
 
         print("\n--Executed commands--\n")
-        print(tabulate(process_table, headers="firstrow", tablefmt="pretty"))
+        print(tabulate(process_table, headers="firstrow", tablefmt="grid"))
         return 0
     
     #Create the simple table of executed processes
@@ -202,7 +202,7 @@ def show_status(arg=[""]):
         process_table.append([index,pid_info["module"], pid_info["command"], pid_info["status"]])
 
     print("\n--Executed commands--\n")
-    print(tabulate(process_table, headers="firstrow", tablefmt="pretty"))
+    print(tabulate(process_table, headers="firstrow", tablefmt="grid"))
     return 0
 
 #check status of a running command or all running commands
