@@ -127,7 +127,7 @@ def show_modules(arg=[""]):
             description = module_info["Description"]
             tagging = ','.join(module_info["Tagging"] if module_info["Tagging"] else "None")
 
-            table.add_row([module, description, tagging])
+            table.add_row([module, wrap_text(description), tagging])
 
     print(table)
 
