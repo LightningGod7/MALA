@@ -144,6 +144,7 @@ def use_module(arg):
     try:
         module_import_path = module_mapping[selected_module].replace('\\', '.').replace('/', '.').replace(".py","").lstrip('.')
         print(module_import_path)
+
         new_module, class_name = dynamic_import(module_import_path)
         MODULE = "(" + class_name + ")"
         return new_module

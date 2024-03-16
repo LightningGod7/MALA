@@ -1,4 +1,9 @@
 {
+    "feroxbuster": "/usr/bin/feroxbuster",
+    "rustscan": "/usr/local/bin/rustscan",
+    "nxc": "/home/kali/.local/share/pipx/venvs/netexec/bin/nxc",
+    "nmapAutomator":"/opt/nmapAutomator.sh",
+    "autorecon": "/home/kali/.local/share/pipx/venvs/autorecon/bin/autorecon",
     "echo": "/usr/bin/echo",
     "nc": "/usr/bin/nc",
     "python": "/usr/bin/python",
